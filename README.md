@@ -49,7 +49,7 @@
 
 </p>
 
-<h2>⚙️ Getting Started</h2>
+<h2> Getting Started</h2>
 
 <p>Clone the project and install dependencies:</p>
 
