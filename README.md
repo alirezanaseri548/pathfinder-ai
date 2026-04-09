@@ -16,11 +16,11 @@
 <h2> Features</h2>
 
 <ul>
-  <li>📝 <strong>AI Resume Builder</strong> – Create personalized, ATS-friendly resumes.</li>
-  <li>💌 <strong>Cover Letter Generator</strong> – Generate tone-matched, role-specific letters.</li>
-  <li>🧠 <strong>Interview Preparation</strong> – Practice with adaptive, role-based AI questions.</li>
-  <li>📊 <strong>Industry Insights</strong> – Get real-time trends, salary data, and in-demand skills.</li>
-  <li>🔐 <strong>Secure Auth</strong> – Authenticated via Clerk with full user session management.</li>
+  <li> <strong>AI Resume Builder</strong> – Create personalized, ATS-friendly resumes.</li>
+  <li> <strong>Cover Letter Generator</strong> – Generate tone-matched, role-specific letters.</li>
+  <li> <strong>Interview Preparation</strong> – Practice with adaptive, role-based AI questions.</li>
+  <li> <strong>Industry Insights</strong> – Get real-time trends, salary data, and in-demand skills.</li>
+  <li> <strong>Secure Auth</strong> – Authenticated via Clerk with full user session management.</li>
 </ul>
 
 <hr />
