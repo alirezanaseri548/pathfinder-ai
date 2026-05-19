@@ -1,7 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+import { generateGeminiContentStream } from "@/lib/gemini";
 
 /**
  * Streaming API route that uses Gemini's generateContentStream()
@@ -45,15 +43,12 @@ export async function POST(request) {
     );
   }
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: MODEL_NAME });
-
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        const result = await model.generateContentStream(prompt);
+        const result = await generateGeminiContentStream(prompt);
 
         for await (const chunk of result.stream) {
           const text = chunk.text();

@@ -1,18 +1,12 @@
 "use server";
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-// fallback to flash if env missing
-const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+import { generateGeminiContent } from "@/lib/gemini";
 
 export async function chatWithGemini(prompt) {
   if (!prompt) throw new Error("Prompt is required");
 
   try {
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
-    const { response } = await model.generateContent(prompt);
+    const { response } = await generateGeminiContent(prompt);
     return response.text();
   } catch (err) {
     // surface Google error message if present
