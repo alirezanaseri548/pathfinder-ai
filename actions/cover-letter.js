@@ -2,9 +2,13 @@
 
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 /* ---------------- MODEL ---------------- */
+=======
+import { generateGeminiContent } from "@/lib/gemini";
+
 
 function getModel() {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -26,6 +30,7 @@ export async function generateCoverLetter(data) {
   let user;
 
   try {
+
     const { userId } = await auth();
 
     if (!userId) {
@@ -79,6 +84,10 @@ Requirements:
     if (!content) {
       throw new Error("Empty AI response");
     }
+=======
+    const result = await generateGeminiContent(prompt);
+    const content = result.response.text().trim();
+
 
     const coverLetter = await db.coverLetter.create({
       data: {
@@ -94,15 +103,22 @@ Requirements:
     return coverLetter;
 
   } catch (error) {
+
     console.error("Cover Letter Error:", error);
     if (!user) {
   throw new Error("Failed to generate cover letter");
 }
 
     const fallbackContent = `
+=======
+  console.error("Error generating cover letter:", error);
+
+  const fallbackContent = `
+
 # Cover Letter
 
 Dear Hiring Manager,
+
 
 I am excited to apply for the ${data?.jobTitle || "this"} position at ${data?.companyName || "your company"}.
 
@@ -127,6 +143,31 @@ ${user?.name || "Candidate"}
 
     return coverLetter;
   }
+=======
+I am excited to apply for the ${data.jobTitle} position at ${data.companyName}.
+
+My background in ${user.industry} and my experience make me a strong candidate.
+
+Thank you for your time.
+
+Sincerely,
+${user.name || "Candidate"}
+`;
+
+  const coverLetter = await db.coverLetter.create({
+    data: {
+      content: fallbackContent,
+      jobDescription: data.jobDescription,
+      companyName: data.companyName,
+      jobTitle: data.jobTitle,
+      status: "fallback",
+      userId: user.id,
+    },
+  });
+
+  return coverLetter;
+}
+
 }
 
 

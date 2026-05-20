@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 /* ---------------- MODEL ---------------- */
@@ -18,6 +19,9 @@ function getModel() {
 }
 
 /* ---------------- QUIZ GENERATION ---------------- */
+
+import { generateGeminiContent } from "@/lib/gemini";
+
 
 export async function generateQuiz() {
   const { userId } = await auth();
@@ -68,6 +72,7 @@ Return ONLY valid JSON:
 `;
 
   try {
+
   const result = await getModel().generateContent(prompt);
   const text = result.response.text();
 
@@ -86,6 +91,18 @@ Return ONLY valid JSON:
 
   if (!quiz?.questions) {
     throw new Error("No questions field in response");
+
+    const result = await generateGeminiContent(prompt);
+    const response = result.response;
+    const text = response.text();
+    const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
+    const quiz = JSON.parse(cleanedText);
+
+    return quiz.questions;
+  } catch (error) {
+    console.error("Error generating quiz:", error);
+    throw new Error("Failed to generate quiz questions");
+
   }
 
   return quiz.questions.slice(0, 10);
@@ -268,10 +285,20 @@ Focus on learning direction, not criticism.
 `;
 
     try {
+
       const result = await getModel().generateContent(prompt);
       improvementTip = result.response.text().trim();
     } catch (e) {
       console.error("Tip generation failed:", e);
+
+      const tipResult = await generateGeminiContent(improvementPrompt);
+
+      improvementTip = tipResult.response.text().trim();
+      console.log(improvementTip);
+    } catch (error) {
+      console.error("Error generating improvement tip:", error);
+      // Continue without improvement tip if generation fails
+
     }
   }
 
