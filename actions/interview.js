@@ -6,6 +6,14 @@ import { auth } from "@clerk/nextjs/server";
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({
+  model: process.env.GEMINI_MODEL || "gemini-1.5-flash-001",
+});
+
+
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
 /* ---------------- MODEL ---------------- */
 
 function getModel() {
@@ -20,6 +28,7 @@ function getModel() {
 }
 
 /* ---------------- QUIZ GENERATION ---------------- */
+
 
 import { generateGeminiContent } from "@/lib/gemini";
 

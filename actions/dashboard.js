@@ -7,19 +7,33 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 function getModel() {
   const apiKey = process.env.GEMINI_API_KEY;
+
+
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is not configured");
+  }
+
   if (!apiKey) throw new Error("GEMINI_API_KEY is not configured");
+
 
   const genAI = new GoogleGenerativeAI(apiKey);
 
   return genAI.getGenerativeModel({
+
+    model: process.env.GEMINI_MODEL || "gemini-1.5-flash-001",
+
     model: "gemini-1.5-flash",
+
   });
 }
 
 import { generateGeminiContent } from "@/lib/gemini";
 
 
+
+
 /* ---------------- SAFE AI INSIGHTS ---------------- */
+
 
 export const generateAIInsights = async (industry) => {
 

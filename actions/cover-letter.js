@@ -5,9 +5,21 @@ import { auth } from "@clerk/nextjs/server";
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-/* ---------------- MODEL ---------------- */
-=======
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-001" });
+
 import { generateGeminiContent } from "@/lib/gemini";
+
+
+export async function generateCoverLetter(data) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+/* ---------------- MODEL ---------------- */
+
+import { generateGeminiContent } from "@/lib/gemini";
+
 
 
 function getModel() {
