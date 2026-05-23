@@ -3,6 +3,7 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { generateGeminiContent } from "@/lib/gemini";
+import { buildSecurePrompt } from "@/lib/prompt-safety";
 
 // Fallback MCQ questions in case Gemini generation fails
 const FALLBACK_QUESTIONS = [
@@ -136,29 +137,28 @@ export async function generateQuiz(category = "Technical") {
     : [];
 
   const categoryPrompts = {
-    Technical: `Generate 10 technical interview questions for a ${user.industry || "software"} professional${
-      normalizedSkills.length ? ` with expertise in ${normalizedSkills.join(", ")}` : ""
-    }. Focus on programming concepts, data structures, system design, algorithms, and practical technical knowledge.`,
-    Behavioral: `Generate 10 behavioral interview questions for a ${user.industry || "software"} professional${
-      normalizedSkills.length ? ` with expertise in ${normalizedSkills.join(", ")}` : ""
-    }. Focus on teamwork, leadership, conflict resolution, communication, and past experiences. Use scenarios like 'Tell me about a time when...' or 'How would you handle...'`,
-    Situational: `Generate 10 situational interview questions for a ${user.industry || "software"} professional${
-      normalizedSkills.length ? ` with expertise in ${normalizedSkills.join(", ")}` : ""
-    }. Focus on hypothetical workplace scenarios — how the candidate would handle specific on-the-job situations, ethical dilemmas, and decision-making.`,
+    Technical: "Generate 10 technical interview questions focusing on programming concepts, data structures, system design, algorithms, and practical technical knowledge.",
+    Behavioral: "Generate 10 behavioral interview questions focusing on teamwork, leadership, conflict resolution, communication, and past experiences. Use scenarios like 'Tell me about a time when...' or 'How would you handle...'",
+    Situational: "Generate 10 situational interview questions focusing on hypothetical workplace scenarios — how the candidate would handle specific on-the-job situations, ethical dilemmas, and decision-making.",
   };
 
   const categoryIntro = categoryPrompts[category] || categoryPrompts.Technical;
 
-  const prompt = `
-You are a highly experienced hiring manager and strict quiz generator.
+  const prompt = buildSecurePrompt({
+    task: `You are a highly experienced hiring manager and strict quiz generator.
 
 ${categoryIntro}
 
-Generate EXACTLY 10 UNIQUE MCQ questions.
-
-RULES:
+Generate EXACTLY 10 UNIQUE MCQ questions.`,
+    context: "The candidate has listed their industry, skills, and a quiz category below.",
+    untrustedData: [
+      { label: "industry", value: user.industry || "software", maxLength: 200 },
+      { label: "skills", value: normalizedSkills.join(", ") || "Not specified", maxLength: 1000 },
+      { label: "category", value: category, maxLength: 200 },
+    ],
+    outputRules: `RULES:
 - Exactly 10 questions only. No repetition.
-- Each question must be highly relevant to a professional in ${user.industry || "software engineering"}.
+- Each question must be highly relevant.
 - Each question must have 4 FULL, realistic options (do NOT use labels like 'A', 'B', 'C', 'D' at the beginning of options).
 - Only ONE correct answer.
 - The 'correctAnswer' field MUST exactly match the string text of one of the options.
@@ -180,8 +180,8 @@ Return ONLY a valid JSON object matching this schema. Do not output any markdown
       "explanation": "Detailed explanation of why Option 3 is correct."
     }
   ]
-}
-`;
+}`,
+  });
 
   try {
     const result = await generateGeminiContent(prompt);
@@ -254,14 +254,15 @@ export async function saveQuizResult(questions, answers, score, category = "Tech
       .map((q) => `Q: ${q.question}\nCorrect answer was: ${q.correctAnswer}\nUser answered: ${q.userAnswer || "No Answer"}`)
       .join("\n\n");
 
-    const tipPrompt = `
-You are a supportive career mentor. The candidate working in the ${user.industry || "software"} industry completed a ${category} quiz and got a score of ${score}%.
-Here are some of the questions they got wrong:
-
-${wrongText}
-
-Provide an encouraging, actionable improvement tip (strictly max 2 sentences) recommending key learning areas. Be positive, warm, and professional. Do not refer to question indexes or speak critically.
-`;
+    const tipPrompt = buildSecurePrompt({
+      task: "You are a supportive career mentor. The candidate completed a quiz. Provide an encouraging, actionable improvement tip (strictly max 2 sentences) recommending key learning areas. Be positive, warm, and professional. Do not refer to question indexes or speak critically.",
+      untrustedData: [
+        { label: "industry", value: user.industry || "software", maxLength: 200 },
+        { label: "category", value: category, maxLength: 200 },
+        { label: "score", value: String(score), maxLength: 50 },
+        { label: "wrongAnswers", value: wrongText, maxLength: 4000 },
+      ],
+    });
 
     try {
       const tipResult = await generateGeminiContent(tipPrompt);

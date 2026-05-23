@@ -3,15 +3,19 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { generateGeminiContent } from "@/lib/gemini";
+import { buildSecurePrompt } from "@/lib/prompt-safety";
 
 /**
  * Generates industry insights using Gemini AI.
  * If AI generation fails, provides high-quality default fallback insights.
  */
 export async function generateAIInsights(industry) {
-  const prompt = `
-Analyze the current state of the ${industry} industry.
-Provide real-world, comprehensive insights in ONLY the following JSON format. Do not output any markdown code fences, warnings, or extra text:
+  const prompt = buildSecurePrompt({
+    task: "Analyze the current state of the industry and provide real-world, comprehensive insights.",
+    untrustedData: [
+      { label: "industry", value: industry, maxLength: 200 },
+    ],
+    outputRules: `Provide your analysis in ONLY the following JSON format. Do not output any markdown code fences, warnings, or extra text:
 
 {
   "salaryRanges": [
@@ -34,8 +38,8 @@ Provide real-world, comprehensive insights in ONLY the following JSON format. Do
 Requirements:
 - Include at least 4 common roles for salary ranges with realistic figures.
 - Growth rate must be a float/number (representing percentage growth).
-- Provide at least 5 top skills and 5 key trends.
-`;
+- Provide at least 5 top skills and 5 key trends.`,
+  });
 
   try {
     const result = await generateGeminiContent(prompt);

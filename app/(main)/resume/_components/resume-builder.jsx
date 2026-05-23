@@ -92,9 +92,9 @@ export default function ResumeBuilder({ initialContent }) {
     if (saveResult && !isSaving) {
       // If our new backend validation engine caught an error payload:
       if (saveResult.success === false) {
-        const errorMessage = 
-          saveResult.errors?.content?.[0] || 
-          saveResult.errors?._form?.[0] || 
+        const errorMessage =
+          saveResult.errors?.content?.[0] ||
+          saveResult.errors?._form?.[0] ||
           "Server validation rejected payload parameters.";
         toast.error(errorMessage);
       } else {

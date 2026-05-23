@@ -4,6 +4,7 @@ import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { generateGeminiContent } from "@/lib/gemini";
+import { buildSecurePrompt } from "@/lib/prompt-safety";
 import { validateInput } from "@/lib/validate";
 import { atsAnalysisSchema } from "@/lib/schemas/forms";
 
@@ -31,17 +32,15 @@ export async function analyzeATS(rawParams) {
       return { success: false, errors: { _form: ["Active user account not found."] } };
     }
 
-    const prompt = `
-You are an expert ATS (Applicant Tracking System) analyst and career coach.
-Analyze the following resume against the job description and return a detailed ATS compatibility report.
-
-RESUME:
-${resumeContent}
-
-JOB DESCRIPTION:
-${jobDescription}
-
-Provide your analysis in the following JSON format ONLY — no extra text, no markdown fences:
+    const prompt = buildSecurePrompt({
+      task: "You are an expert ATS (Applicant Tracking System) analyst and career coach. Analyze the resume against the job description and return a detailed ATS compatibility report.",
+      untrustedData: [
+        { label: "resumeContent", value: resumeContent, maxLength: 8000 },
+        { label: "jobDescription", value: jobDescription, maxLength: 8000 },
+        { label: "jobTitle", value: jobTitle || "Not specified", maxLength: 200 },
+        { label: "companyName", value: companyName || "Not specified", maxLength: 200 },
+      ],
+      outputRules: `Provide your analysis in the following JSON format ONLY - no extra text, no markdown fences:
 {
   "atsScore": <number between 0 and 100>,
   "matchedKeywords": [<array of keywords found in both>],
@@ -49,15 +48,24 @@ Provide your analysis in the following JSON format ONLY — no extra text, no ma
   "suggestions": [<array of practical improvements>],
   "overallFeedback": "string highlighting strengths and gaps"
 }
-`;
+
+Scoring guidelines:
+- 0-40: Poor match
+- 41-60: Fair match
+- 61-75: Good match
+- 76-90: Strong match
+- 91-100: Excellent match
+
+Be specific and actionable. Include at least 5 matched keywords (if present), at least 5 missing keywords, and at least 5 improvement suggestions.
+IMPORTANT: Return ONLY valid JSON. No markdown, no explanation outside the JSON.`,
+    });
 
     const result = await generateGeminiContent(prompt);
     const text = result.response.text().trim();
-    
+
     const cleanJsonText = text.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
     const parsedAnalysis = JSON.parse(cleanJsonText);
 
-    // Normalize keywords and suggestions explicitly to avoid TypeErrors during Prisma write
     const matchedKeywords = Array.isArray(parsedAnalysis.matchedKeywords) ? parsedAnalysis.matchedKeywords.map(String) : [];
     const missingKeywords = Array.isArray(parsedAnalysis.missingKeywords) ? parsedAnalysis.missingKeywords.map(String) : [];
     const suggestions = Array.isArray(parsedAnalysis.suggestions) ? parsedAnalysis.suggestions.map(String) : [];
@@ -140,7 +148,7 @@ export async function deleteATSAnalysis(id) {
         userId: user.id,
       },
     });
-    
+
     revalidatePath("/ats-analyzer");
     return { success: true };
   } catch (error) {

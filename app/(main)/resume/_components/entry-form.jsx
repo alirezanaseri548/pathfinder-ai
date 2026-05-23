@@ -63,9 +63,9 @@ export function EntryForm({ type, entries, onChange }) {
         toast.success("Description updated and polished with AI insights!");
       } else {
         // Fallback for action-layer structural error responses
-        const backendError = 
-          improvedDescription.errors?._form?.[0] || 
-          improvedDescription.errors?.current?.[0] || 
+        const backendError =
+          improvedDescription.errors?._form?.[0] ||
+          improvedDescription.errors?.current?.[0] ||
           "AI configuration rejected input optimization parameters.";
         toast.error(backendError);
       }

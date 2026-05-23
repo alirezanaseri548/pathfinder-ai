@@ -3,6 +3,7 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { generateGeminiContent } from "@/lib/gemini";
+import { buildSecurePrompt } from "@/lib/prompt-safety";
 
 /**
  * Generates a professional cover letter using Gemini AI.
@@ -21,25 +22,25 @@ export async function generateCoverLetter(data) {
     throw new Error("Missing required fields");
   }
 
-  const prompt = `
-Write a professional cover letter for a ${data.jobTitle} position at ${data.companyName}.
-
-Candidate Details:
-- Name: ${user.name || "Candidate"}
-- Industry: ${user.industry || "Technology"}
-- Experience: ${user.experience || "0"} years
-- Skills: ${user.skills?.join(", ") || "Not specified"}
-- Background: ${user.bio || "Not specified"}
-
-Job Description:
-${data.jobDescription}
-
-Requirements:
+  const prompt = buildSecurePrompt({
+    task: "Write a professional cover letter for the position described below.",
+    context: "You are a professional career coach and cover letter writer.",
+    untrustedData: [
+      { label: "jobTitle", value: data.jobTitle, maxLength: 200 },
+      { label: "companyName", value: data.companyName, maxLength: 200 },
+      { label: "candidateName", value: user.name || "Candidate", maxLength: 200 },
+      { label: "industry", value: user.industry || "Technology", maxLength: 200 },
+      { label: "experience", value: String(user.experience || "0") + " years", maxLength: 100 },
+      { label: "skills", value: user.skills?.join(", ") || "Not specified", maxLength: 1000 },
+      { label: "bio", value: user.bio || "Not specified", maxLength: 2000 },
+      { label: "jobDescription", value: data.jobDescription, maxLength: 8000 },
+    ],
+    outputRules: `Requirements:
 - Professional, engaging, and persuasive tone
 - Max 400 words
 - Highlight how the candidate's skills and experience match the job description
-- Use markdown formatting for readability
-`;
+- Use markdown formatting for readability`,
+  });
 
   try {
     const result = await generateGeminiContent(prompt);
