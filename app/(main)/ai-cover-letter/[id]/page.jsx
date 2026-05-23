@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getCoverLetter } from "@/actions/cover-letter";
 import CoverLetterPreview from "../_components/cover-letter-preview";
+import DownloadPdf from "@/components/download-pdf";
 
 export default async function EditCoverLetterPage({ params }) {
   const { id } = await params;
@@ -18,9 +19,16 @@ export default async function EditCoverLetterPage({ params }) {
           </Button>
         </Link>
 
-        <h1 className="text-6xl font-bold gradient-title mb-6">
-          {coverLetter?.jobTitle} at {coverLetter?.companyName}
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-6xl font-bold gradient-title mb-6">
+            {coverLetter?.jobTitle} at {coverLetter?.companyName}
+          </h1>
+          <DownloadPdf
+            contentRefId="cover-letter-content"
+            fileName={`cover-letter-${coverLetter?.companyName?.toLowerCase().replace(/\s+/g, "-")}-${coverLetter?.jobTitle?.toLowerCase().replace(/\s+/g, "-")}.pdf`}
+            label="Download PDF"
+          />
+        </div>
       </div>
 
       <CoverLetterPreview content={coverLetter?.content} />
