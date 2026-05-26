@@ -2,21 +2,22 @@
 
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { revalidatePath } from "next/cache";
+import { generateGeminiContent } from "@/lib/gemini";
+import { buildSecurePrompt, generateWithStructuredOutput } from "@/lib/prompt-safety";
+import { validateInput, validateOutput } from "@/lib/validate";
+import { resumeSaveSchema, resumeImprovementSchema } from "@/lib/schemas/forms";
+import { resumeImprovementOutputSchema, SCHEMA_DESCRIPTIONS } from "@/lib/schemas/outputs";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-export async function saveResume(content) {
+export async function saveResume(rawContent) {
   const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
+  if (!userId) return { success: false, errors: { _form: ["Sign-in required to update resume files."] } };
 
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
+  const validation = validateInput(resumeSaveSchema, { content: rawContent });
+  if (!validation.success) return { success: false, errors: validation.errors };
 
-  if (!user) throw new Error("User not found");
+  const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+  if (!user) return { success: false, errors: { _form: ["Active database profile not found."] } };
 
   try {
     const resume = await db.resume.upsert({
@@ -24,19 +25,19 @@ export async function saveResume(content) {
         userId: user.id,
       },
       update: {
-        content,
+        content: validation.data.content,
       },
       create: {
         userId: user.id,
-        content,
+        content: validation.data.content,
       },
     });
 
     revalidatePath("/resume");
-    return resume;
+    return { success: true, data: resume };
   } catch (error) {
-    console.error("Error saving resume:", error);
-    throw new Error("Failed to save resume");
+    console.error("Error saving resume content:", error);
+    return { success: false, errors: { _form: ["Failed to update resume storage transaction record."] } };
   }
 }
 
@@ -47,7 +48,6 @@ export async function getResume() {
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
   });
-
   if (!user) throw new Error("User not found");
 
   return await db.resume.findUnique({
@@ -57,9 +57,14 @@ export async function getResume() {
   });
 }
 
-export async function improveWithAI({ current, type }) {
+export async function improveWithAI(rawParams) {
   const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
+  if (!userId) return { success: false, errors: { _form: ["Sign-in expired. Please authenticate again."] } };
+
+  const validation = validateInput(resumeImprovementSchema, rawParams);
+  if (!validation.success) return { success: false, errors: validation.errors };
+
+  const { current, type } = validation.data;
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
@@ -67,32 +72,56 @@ export async function improveWithAI({ current, type }) {
       industryInsight: true,
     },
   });
+  if (!user) return { success: false, errors: { _form: ["User account match could not be checked."] } };
 
-  if (!user) throw new Error("User not found");
+  const prompt = buildSecurePrompt({
+    task: `As an expert resume writer, improve the following description to make it more impactful, quantifiable, and aligned with industry standards.
 
-  const prompt = `
-    As an expert resume writer, improve the following ${type} description for a ${user.industry} professional.
-    Make it more impactful, quantifiable, and aligned with industry standards.
-    Current content: "${current}"
+Requirements:
+1. Use action verbs
+2. Include metrics and results only when supported by the source text
+3. Highlight relevant technical skills
+4. Keep it concise but detailed
+5. Focus on achievements over responsibilities
+6. Use industry-specific keywords
+7. Do not invent employers, dates, tools, certifications, metrics, or outcomes
 
-    Requirements:
-    1. Use action verbs
-    2. Include metrics and results where possible
-    3. Highlight relevant technical skills
-    4. Keep it concise but detailed
-    5. Focus on achievements over responsibilities
-    6. Use industry-specific keywords
-    
-    Format the response as a single paragraph without any additional text or explanations.
-  `;
+Respond ONLY with a valid JSON object in this exact format (no markdown, no code fences):
+{
+  "improvedContent": "<single improved paragraph>",
+  "highlights": ["<key achievement 1>", "<key achievement 2>", ...]
+}`,
+    untrustedData: [
+      { label: "resumeContent", value: current, maxLength: 8000 },
+      { label: "type", value: type, maxLength: 200 },
+      { label: "industry", value: user.industry, maxLength: 200 },
+    ],
+  });
+
+  const schemaDescription = SCHEMA_DESCRIPTIONS.resumeImprovement;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const improvedContent = response.text().trim();
-    return improvedContent;
+    const result = await generateWithStructuredOutput({
+      prompt,
+      schemaDescription,
+      schema: resumeImprovementOutputSchema,
+      generateFn: async (p) => {
+        const raw = await generateGeminiContent(p);
+        return raw.response.text().trim();
+      },
+      validateFn: validateOutput,
+    });
+
+    if (!result.success) {
+      console.error("Output validation failed:", result.errors);
+      return { success: false, errors: { _form: ["AI returned an unexpected format. Please try again."] } };
+    }
+
+    // Reassemble into plain string for backward compatibility with existing DB/UI
+    const improvedText = result.data.improvedContent;
+    return { success: true, data: improvedText };
   } catch (error) {
-    console.error("Error improving content:", error);
-    throw new Error("Failed to improve content");
+    console.error("Error optimizing structural field elements:", error);
+    return { success: false, errors: { _form: [error?.message || "AI pipeline configuration encountered an error."] } };
   }
 }

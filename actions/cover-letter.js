@@ -2,11 +2,15 @@
 
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateGeminiContent } from "@/lib/gemini";
+import { buildSecurePrompt, generateWithStructuredOutput } from "@/lib/prompt-safety";
+import { validateOutput } from "@/lib/validate";
+import { coverLetterOutputSchema, SCHEMA_DESCRIPTIONS } from "@/lib/schemas/outputs";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
+/**
+ * Generates a professional cover letter using Gemini AI with structured output validation.
+ * Falls back to a safe template if AI generation or validation fails.
+ */
 export async function generateCoverLetter(data) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
@@ -14,45 +18,67 @@ export async function generateCoverLetter(data) {
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
   });
-
   if (!user) throw new Error("User not found");
 
-  const prompt = `
-    Write a professional cover letter for a ${data.jobTitle} position at ${
-    data.companyName
-  }.
-    
-    About the candidate:
-    - Industry: ${user.industry}
-    - Years of Experience: ${user.experience}
-    - Skills: ${user.skills?.join(", ")}
-    - Professional Background: ${user.bio}
-    
-    Job Description:
-    ${data.jobDescription}
-    
-    Requirements:
-    1. Use a professional, enthusiastic tone
-    2. Highlight relevant skills and experience
-    3. Show understanding of the company's needs
-    4. Keep it concise (max 400 words)
-    5. Use proper business letter formatting in markdown
-    6. Include specific examples of achievements
-    7. Relate candidate's background to job requirements
-    
-    Format the letter in markdown.
-  `;
+  if (!data?.jobTitle || !data?.companyName || !data?.jobDescription) {
+    throw new Error("Missing required fields");
+  }
+
+  const prompt = buildSecurePrompt({
+    task: `Write a professional cover letter for the position described below.
+
+Use only the candidate facts provided in the input. Do not invent projects, achievements,
+titles, certifications, metrics, or years of experience that are not explicitly provided.
+If a detail is missing, keep the wording general instead of guessing.
+
+Respond ONLY with a valid JSON object in this exact format (no markdown, no code fences):
+{
+  "greeting": "Dear Hiring Manager,",
+  "body": "<2-3 paragraphs, professional tone, max 300 words>",
+  "closing": "Sincerely,\\n<candidate name>"
+}`,
+    context: "You are a professional career coach and cover letter writer.",
+    untrustedData: [
+      { label: "jobTitle", value: data.jobTitle, maxLength: 200 },
+      { label: "companyName", value: data.companyName, maxLength: 200 },
+      { label: "candidateName", value: user.name || "Candidate", maxLength: 200 },
+      { label: "industry", value: user.industry || "Technology", maxLength: 200 },
+      { label: "experience", value: String(user.experience || "0") + " years", maxLength: 100 },
+      { label: "skills", value: user.skills?.join(", ") || "Not specified", maxLength: 1000 },
+      { label: "bio", value: user.bio || "Not specified", maxLength: 2000 },
+      { label: "jobDescription", value: data.jobDescription, maxLength: 8000 },
+    ],
+  });
+
+  const schemaDescription = SCHEMA_DESCRIPTIONS.coverLetter;
 
   try {
-    const result = await model.generateContent(prompt);
-    const content = result.response.text().trim();
+    const result = await generateWithStructuredOutput({
+      prompt,
+      schemaDescription,
+      schema: coverLetterOutputSchema,
+      generateFn: async (p) => {
+        const raw = await generateGeminiContent(p);
+        return raw.response.text().trim();
+      },
+      validateFn: validateOutput,
+    });
+
+    if (!result.success) {
+      console.error("Cover letter output validation failed:", result.errors);
+      throw new Error("AI returned an unexpected format.");
+    }
+
+    // Reassemble sections into a single markdown string for backward compatibility
+    const { greeting, body, closing } = result.data;
+    const content = `${greeting}\n\n${body}\n\n${closing}`;
 
     const coverLetter = await db.coverLetter.create({
       data: {
         content,
-        jobDescription: data.jobDescription,
         companyName: data.companyName,
         jobTitle: data.jobTitle,
+        jobDescription: data.jobDescription,
         status: "completed",
         userId: user.id,
       },
@@ -60,11 +86,42 @@ export async function generateCoverLetter(data) {
 
     return coverLetter;
   } catch (error) {
-    console.error("Error generating cover letter:", error.message);
-    throw new Error("Failed to generate cover letter");
+    console.error("Error generating cover letter, using fallback:", error);
+    const errorCode = error?.code || "UNKNOWN";
+
+    const fallbackContent = `
+# Cover Letter
+
+Dear Hiring Manager,
+
+I am writing to express my interest in the ${data.jobTitle} position at ${data.companyName}. 
+
+Based on my background in the ${user.industry || "relevant"} industry and my experience, I believe I can bring valuable skills to your team. I would love the opportunity to discuss how my qualifications align with your needs.
+
+Thank you for your time and consideration.
+
+Sincerely,
+${user.name || "Candidate"}
+`;
+
+    const coverLetter = await db.coverLetter.create({
+      data: {
+        content: fallbackContent.trim(),
+        companyName: data.companyName,
+        jobTitle: data.jobTitle,
+        jobDescription: data.jobDescription,
+        status: "fallback",
+        userId: user.id,
+      },
+    });
+
+    return { ...coverLetter, _errorCode: errorCode };
   }
 }
 
+/**
+ * Fetches all cover letters for the signed-in user, newest first.
+ */
 export async function getCoverLetters() {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
@@ -72,19 +129,17 @@ export async function getCoverLetters() {
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
   });
-
   if (!user) throw new Error("User not found");
 
-  return await db.coverLetter.findMany({
-    where: {
-      userId: user.id,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
+  return db.coverLetter.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
   });
 }
 
+/**
+ * Fetches a single cover letter by ID (ownership-checked).
+ */
 export async function getCoverLetter(id) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
@@ -92,10 +147,9 @@ export async function getCoverLetter(id) {
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
   });
-
   if (!user) throw new Error("User not found");
 
-  return await db.coverLetter.findUnique({
+  return db.coverLetter.findFirst({
     where: {
       id,
       userId: user.id,
@@ -103,6 +157,9 @@ export async function getCoverLetter(id) {
   });
 }
 
+/**
+ *Deletes a specific cover letter record with strict ownership validation.
+ */
 export async function deleteCoverLetter(id) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
@@ -110,13 +167,12 @@ export async function deleteCoverLetter(id) {
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
   });
-
   if (!user) throw new Error("User not found");
 
-  return await db.coverLetter.delete({
-    where: {
-      id,
-      userId: user.id,
-    },
-  });
+ return db.coverLetter.deleteMany({
+  where: {
+    id,
+    userId: user.id,
+  },
+});
 }

@@ -1,4 +1,3 @@
-// app/resume/_components/entry-form.jsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -16,7 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { entrySchema } from "@/app/lib/schema";
-import { Sparkles, PlusCircle, X, Pencil, Save, Loader2 } from "lucide-react";
+import { Sparkles, PlusCircle, X, Loader2 } from "lucide-react";
 import { improveWithAI } from "@/actions/resume";
 import { toast } from "sonner";
 import useFetch from "@/hooks/use-fetch";
@@ -44,188 +43,204 @@ export function EntryForm({ type, entries, onChange }) {
       organization: "",
       startDate: "",
       endDate: "",
-      description: "",
       current: false,
+      description: "",
     },
   });
 
-  const current = watch("current");
+  const {
+    loading: isImproving,
+    fn: improveDescriptionFn,
+    data: improvedDescription,
+    error: improveError,
+  } = useFetch(improveWithAI);
+
+  // Core Fix: Safely unwrap server response object types to prevent [object Object] rendering
+  useEffect(() => {
+    if (improvedDescription) {
+      if (improvedDescription.success === true) {
+        setValue("description", improvedDescription.data);
+        toast.success("Description updated and polished with AI insights!");
+      } else {
+        // Fallback for action-layer structural error responses
+        const backendError =
+          improvedDescription.errors?._form?.[0] ||
+          improvedDescription.errors?.current?.[0] ||
+          "AI configuration rejected input optimization parameters.";
+        toast.error(backendError);
+      }
+    }
+    if (improveError) {
+      toast.error(improveError.message || "Failed to improve description.");
+    }
+  }, [improvedDescription, improveError, setValue]);
+
+  const handleImproveDescription = async () => {
+    const currentDescription = watch("description");
+    if (!currentDescription?.trim()) {
+      toast.error("Please enter some description content first to optimize.");
+      return;
+    }
+    await improveDescriptionFn({ current: currentDescription, type });
+  };
 
   const handleAdd = handleValidation((data) => {
-    const formattedEntry = {
-      ...data,
-      startDate: formatDisplayDate(data.startDate),
-      endDate: data.current ? "" : formatDisplayDate(data.endDate),
-    };
-
-    onChange([...entries, formattedEntry]);
-
+    const updatedEntries = [...entries, data];
+    onChange(updatedEntries);
     reset();
     setIsAdding(false);
   });
 
-  const handleDelete = (index) => {
-    const newEntries = entries.filter((_, i) => i !== index);
-    onChange(newEntries);
-  };
-
-  const {
-    loading: isImproving,
-    fn: improveWithAIFn,
-    data: improvedContent,
-    error: improveError,
-  } = useFetch(improveWithAI);
-
-  // Add this effect to handle the improvement result
-  useEffect(() => {
-    if (improvedContent && !isImproving) {
-      setValue("description", improvedContent);
-      toast.success("Description improved successfully!");
-    }
-    if (improveError) {
-      toast.error(improveError.message || "Failed to improve description");
-    }
-  }, [improvedContent, improveError, isImproving, setValue]);
-
-  // Replace handleImproveDescription with this
-  const handleImproveDescription = async () => {
-    const description = watch("description");
-    if (!description) {
-      toast.error("Please enter a description first");
-      return;
-    }
-
-    await improveWithAIFn({
-      current: description,
-      type: type.toLowerCase(), // 'experience', 'education', or 'project'
-    });
+  const handleRemove = (index) => {
+    const updatedEntries = entries.filter((_, i) => i !== index);
+    onChange(updatedEntries);
   };
 
   return (
     <div className="space-y-4">
-      <div className="space-y-4">
+      <div className="space-y-2">
         {entries.map((item, index) => (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+          <div
+            key={index}
+            className="flex items-start justify-between p-3 border rounded-lg bg-muted/40 relative group focus-within:ring-1 focus-within:ring-ring"
+          >
+            <div>
+              <p className="font-semibold text-sm">
                 {item.title} @ {item.organization}
-              </CardTitle>
-              <Button
-                variant="outline"
-                size="icon"
-                type="button"
-                onClick={() => handleDelete(index)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                {item.current
-                  ? `${item.startDate} - Present`
-                  : `${item.startDate} - ${item.endDate}`}
               </p>
-              <p className="mt-2 text-sm whitespace-pre-wrap">
-                {item.description}
+              <p className="text-xs text-muted-foreground">
+                {formatDisplayDate(item.startDate)} -{" "}
+                {item.current ? "Present" : formatDisplayDate(item.endDate)}
               </p>
-            </CardContent>
-          </Card>
+              {item.description && (
+                <p className="text-xs text-muted-foreground mt-2 whitespace-pre-line line-clamp-3">
+                  {item.description}
+                </p>
+              )}
+            </div>
+            {/* Core Fix: Added focus-visible and group-focus-within properties to ensure button pops up for keyboard navigation */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-destructive opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 transition-opacity focus:outline-none focus:ring-2 focus:ring-destructive"
+              onClick={() => handleRemove(index)}
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Remove entry</span>
+            </Button>
+          </div>
         ))}
       </div>
 
       {isAdding && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Add {type}</CardTitle>
+        <Card className="border-2 border-primary/20">
+          <CardHeader className="py-3">
+            <CardTitle className="text-sm font-semibold text-left">
+              Add {type} Details
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <CardContent className="space-y-4 text-left">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
+                <label htmlFor="entry-title" className="text-sm font-medium">
+                  Title / Role
+                </label>
                 <Input
-                  placeholder="Title/Position"
+                  id="entry-title"
+                  placeholder="e.g. Senior Software Engineer"
                   {...register("title")}
-                  error={errors.title}
                 />
                 {errors.title && (
-                  <p className="text-sm text-red-500">{errors.title.message}</p>
+                  <p className="text-xs text-red-500">{errors.title.message}</p>
                 )}
               </div>
               <div className="space-y-2">
+                <label htmlFor="entry-organization" className="text-sm font-medium">
+                  Organization / Company
+                </label>
                 <Input
-                  placeholder="Organization/Company"
+                  id="entry-organization"
+                  placeholder="e.g. Google"
                   {...register("organization")}
-                  error={errors.organization}
                 />
                 {errors.organization && (
-                  <p className="text-sm text-red-500">
+                  <p className="text-xs text-red-500">
                     {errors.organization.message}
                   </p>
                 )}
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
+                <label htmlFor="entry-startDate" className="text-sm font-medium">
+                  Start Date
+                </label>
                 <Input
+                  id="entry-startDate"
                   type="month"
                   {...register("startDate")}
-                  error={errors.startDate}
                 />
                 {errors.startDate && (
-                  <p className="text-sm text-red-500">
+                  <p className="text-xs text-red-500">
                     {errors.startDate.message}
                   </p>
                 )}
               </div>
               <div className="space-y-2">
+                <label htmlFor="entry-endDate" className="text-sm font-medium">
+                  End Date
+                </label>
                 <Input
+                  id="entry-endDate"
                   type="month"
+                  disabled={watch("current")}
                   {...register("endDate")}
-                  disabled={current}
-                  error={errors.endDate}
                 />
                 {errors.endDate && (
-                  <p className="text-sm text-red-500">
+                  <p className="text-xs text-red-500">
                     {errors.endDate.message}
                   </p>
                 )}
               </div>
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 py-1">
               <input
+                id="entry-current"
                 type="checkbox"
-                id="current"
+                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                 {...register("current")}
-                onChange={(e) => {
-                  setValue("current", e.target.checked);
-                  if (e.target.checked) {
-                    setValue("endDate", "");
-                  }
-                }}
               />
-              <label htmlFor="current">Current {type}</label>
+              <label htmlFor="entry-current" className="text-sm font-medium cursor-pointer">
+                I am currently working / studying here
+              </label>
             </div>
 
             <div className="space-y-2">
+              <label htmlFor="entry-description" className="text-sm font-medium">
+                Description / Highlights
+              </label>
               <Textarea
-                placeholder={`Description of your ${type.toLowerCase()}`}
-                className="h-32"
+                id="entry-description"
+                rows={4}
+                placeholder="Detail key tasks, achievements, and metrics tracking your impact..."
                 {...register("description")}
-                error={errors.description}
               />
               {errors.description && (
-                <p className="text-sm text-red-500">
+                <p className="text-xs text-red-500">
                   {errors.description.message}
                 </p>
               )}
             </div>
+
             <Button
               type="button"
               variant="ghost"
               size="sm"
               onClick={handleImproveDescription}
-              disabled={isImproving || !watch("description")}
+              disabled={isImproving || !watch("description")?.trim()}
             >
               {isImproving ? (
                 <>
@@ -240,7 +255,7 @@ export function EntryForm({ type, entries, onChange }) {
               )}
             </Button>
           </CardContent>
-          <CardFooter className="flex justify-end space-x-2">
+          <CardFooter className="flex justify-end space-x-2 pt-2 pb-4">
             <Button
               type="button"
               variant="outline"

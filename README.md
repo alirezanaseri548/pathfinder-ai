@@ -1,66 +1,146 @@
-<h1>PathFinder AI 🧠💼</h1>
+<div align="center">
 
-<p align="center">
+### 🧠 Your AI-Powered Career Coach & Resume Builder
+
+*Build professional resumes · Generate cover letters · Ace interviews · Accelerate your career*
+
+<br/>
+
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-pathfinder--ai.vercel.app-000000?style=for-the-badge)](https://pathfinder-ai.vercel.app)
+[![License](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)](LICENSE)
+[![GSSoC](https://img.shields.io/badge/Open_Source-GSSoC'26-8b5cf6?style=for-the-badge)](https://gssoc.girlscript.tech)
+[![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-f97316?style=for-the-badge)](CONTRIBUTING.md)
+[![Maintained](https://img.shields.io/badge/Maintained-Yes-10b981?style=for-the-badge)](https://github.com/harshdwivediiiii/pathfinder-ai)
+
+</div>
+
+---
+
+## 📸 Preview
+
+<div align="center">
   <img src="https://raw.githubusercontent.com/harshdwivediiiii/pathfinder-ai/main/public/pathfinder-ai.gif" alt="PathFinder AI Preview" width="100%" />
-</p>
+</div>
 
-<p><strong>Your AI-Powered Career Coach & Resume Builder</strong></p>
+---
 
-<p>
-  PathFinder AI is an intelligent web application that helps you craft professional resumes, write tailored cover letters, and prepare for interviews all powered by AI. 
-  Whether you're launching your career or making your next big move, Pathfinder is your personalized guide.
-</p>
+## 🌟 What is PathFinder AI?
 
-<hr />
+**PathFinder AI** is an intelligent, AI-powered career platform built for students, developers, and professionals. It helps you:
 
-<h2> Features</h2>
+- ✅ Create **ATS-friendly resumes** in minutes
+- ✅ Generate **personalized cover letters** tailored to each role
+- ✅ **Prepare for interviews** with adaptive AI-driven questions
+- ✅ Get **real-time industry insights**, salary data, and skill trends
 
-<ul>
-  <li> <strong>AI Resume Builder</strong> – Create personalized, ATS-friendly resumes.</li>
-  <li> <strong>Cover Letter Generator</strong> – Generate tone-matched, role-specific letters.</li>
-  <li> <strong>Interview Preparation</strong> – Practice with adaptive, role-based AI questions.</li>
-  <li> <strong>Industry Insights</strong> – Get real-time trends,salary data, and in-demand skills.</li>
-  <li> <strong>Secure Auth</strong> – Authenticated via Clerk with full user session management</li>
-</ul>
+Whether you're chasing your first internship, switching industries, or leveling up — PathFinder AI is your personalized career companion.
 
-<hr />
+🔗 **[Try it live → pathfinder-ai.vercel.app](https://pathfinder-ai.vercel.app)**
 
-<h2>Tech Stack</h2>
+---
 
-<ul>
-  <li><strong>Framework:</strong> Next.js 14 (App Router)</li>
-  <li><strong>Authentication:</strong> Clerk.dev</li>
-  <li><strong>AI Engine:</strong> Gemini API (Google AI)</li>
-  <li><strong>Database:</strong> PostgreSQL with Prisma ORM</li>
-  <li><strong>Styling:</strong> TailwindCSS + ShadCN UI</li>
-  <li><strong>Deployment:</strong> Vercel</li>
-</ul>
+## ✨ Core Features
 
-<hr />
+| Feature | Description |
+|---|---|
+| 📄 **AI Resume Builder** | Personalized, ATS-optimized resumes powered by Gemini AI |
+| ✉️ **Cover Letter Generator** | Tone-matched, role-specific letters generated instantly |
+| 🎯 **Interview Prep** | Adaptive, role-based practice questions with AI feedback |
+| 📊 **Industry Insights** | Real-time trends, in-demand skills, and salary benchmarks |
+| 🔐 **Secure Auth** | Full session management via Clerk.dev |
+| ⚡ **Modern UI/UX** | Responsive, accessible, production-ready interface |
+| ☁️ **Cloud Native** | Deployed and optimized on Vercel |
 
-<h2> Tech Stacks</h2>
+---
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=nextdotjs" />
-  <img src="https://img.shields.io/badge/Gemini%20API-Google%20AI-red?style=for-the-badge&logo=google" />
-  <img src="https://img.shields.io/badge/TailwindCSS-3.x-38bdf8?style=for-the-badge&logo=tailwindcss&logoColor=white" />
-  <img src="https://img.shields.io/badge/Prisma-ORM-3982CE?style=for-the-badge&logo=prisma&logoColor=white" />
-  <img src="https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" />
+## 🧩 Application Workflow
 
-</p>
+```
+User Input
+    │
+    ▼
+AI Processing (Gemini API)
+    │
+    ▼
+Resume / Cover Letter / Interview Generation
+    │
+    ▼
+Database Storage (PostgreSQL + Prisma)
+    │
+    ▼
+Dashboard Rendering
+    │
+    ▼
+Personalized Career Experience ✨
+```
 
-<h2>Getting Started</h2>
+---
 
-<p>Clone the project and install dependencies:</p>
+## 🛠️ Tech Stack
 
-<pre><code>git clone https://github.com/harshdwivediiiii/pathfinder-ai.git
+<div align="center">
+
+[![Next.js](https://img.shields.io/badge/Next.js_14-000000?style=for-the-badge&logo=nextdotjs)](https://nextjs.org)
+[![Gemini API](https://img.shields.io/badge/Gemini_API-4285F4?style=for-the-badge&logo=google)](https://ai.google.dev)
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS_3-38bdf8?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Prisma](https://img.shields.io/badge/Prisma_ORM-3982CE?style=for-the-badge&logo=prisma)](https://prisma.io)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
+[![Clerk](https://img.shields.io/badge/Clerk-6C47FF?style=for-the-badge&logo=clerk&logoColor=white)](https://clerk.dev)
+[![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel)](https://vercel.com)
+
+</div>
+
+| Layer | Technology |
+|---|---|
+| **Framework** | Next.js 14 (App Router) |
+| **Authentication** | Clerk.dev |
+| **AI Engine** | Gemini API (Google AI) |
+| **Database** | PostgreSQL + Prisma ORM |
+| **Styling** | TailwindCSS + ShadCN UI |
+| **Deployment** | Vercel |
+
+---
+
+## 📂 Project Structure
+
+```
+pathfinder-ai/
+├── app/              # Next.js App Router pages & layouts
+├── components/       # Reusable UI components
+├── lib/              # Utility libraries & helpers
+├── prisma/           # Database schema & migrations
+├── public/           # Static assets
+├── styles/           # Global styles
+├── utils/            # Helper functions
+├── hooks/            # Custom React hooks
+├── constants/        # App-wide constants
+├── package.json
+└── README.md
+```
+
+---
+
+## 🚀 Getting Started
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/harshdwivediiiii/pathfinder-ai.git
 cd pathfinder-ai
+```
+
+### 2. Install Dependencies
+
+```bash
 npm install
-</code></pre>
+```
 
-<p>Create a <code>.env.local</code> file and add the following environment variables:</p>
+### 3. Configure Environment Variables
 
-<pre><code>DATABASE_URL=your_postgresql_connection_string
+Create a `.env.local` file in the root directory:
+
+```env
+DATABASE_URL=your_postgresql_connection_string
 
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
 CLERK_SECRET_KEY=your_clerk_secret_key
@@ -71,73 +151,199 @@ NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/onboarding
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/onboarding
 
 GEMINI_API_KEY=your_gemini_api_key
-</code></pre>
+```
 
-<h3>Developer notes (dev keyless Clerk mode)</h3>
-<p>
-  When developing locally you can run Clerk in "keyless" mode (no Clerk keys set). In
-  this state some routes that expect an authenticated user will be redirected to the
-  sign-in flow rather than crashing the server. If you want full dashboard behavior
-  (recommended), set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` in
-  your `.env.local`.
-</p>
+### 4. Set Up Prisma
 
+```bash
+npx prisma generate
+npx prisma migrate dev
+```
 
-<p>Generate the Prisma client:</p>
+### 5. Start the Dev Server
 
-<pre><code>npx prisma generate
-</code></pre>
+```bash
+npm run dev
+```
 
-<p>Then run the app:</p>
+> **💡 Clerk Keyless Mode:** When developing locally without Clerk API keys, the app runs in keyless mode — auth routes redirect safely and protected dashboards won't crash. Perfect for rapid frontend development.
 
-<pre><code>npm run dev
-</code></pre>
+---
 
-<p>Visit <a href="http://localhost:3000">http://localhost:3000</a> to view your application.</p>
+## 🤖 AI Capabilities
 
-<hr />
+PathFinder AI uses **Gemini API** to power:
 
-<h2>🔐 Authentication</h2>
+- 🧾 Resume bullet point generation
+- ✍️ AI cover letter writing
+- 🎤 Interview preparation questions
+- 🗺️ Career guidance workflows
+- 💬 Personalized AI responses
 
-<p>
-  All user accounts are managed securely using <a href="https://clerk.dev">Clerk.dev</a>. 
-  After signing in, users are routed through an onboarding flow before accessing dashboards.
-</p>
+---
 
-<hr />
+## 📱 Responsive Design
 
-<h2>🤖 AI Capabilities</h2>
+Fully optimized for **Desktop**, **Mobile**, and **Tablet** — built with TailwindCSS and a mobile-first approach.
 
-<p>
-  All smart content — resume bullets, cover letters, interview questions — are powered by the 
-  <a href="https://deepmind.google/technologies/gemini/">Gemini API</a>, using prompts customized by user input, tone, and job descriptions.
-</p>
+---
 
-<hr />
+## 🌟 Open Source & GSSoC 2026
 
-<h2>📄 License</h2>
+PathFinder AI is actively participating in **GirlScript Summer of Code 2026 (GSSoC'26)** ❤️
 
-<p>This project is licensed under the <a href="LICENSE">MIT License</a>.</p>
+We welcome contributions in:
 
-<hr />
+- 🤖 AI integrations & prompt engineering
+- 📄 Resume intelligence systems
+- ⚡ Performance optimization
+- 🎨 UI/UX enhancements
+- ♿ Accessibility improvements
+- 📖 Open-source documentation
 
-<h2>✉️ Contact</h2>
+---
 
-<p>
-  For questions, feedback, or collaborations:<br />
-  📧 <a href="mailto:harshvardhandwivedi18@gmail.com">harshvardhandwivedi18@gmail.com</a>
-</p>
+## 🤝 How to Contribute
 
-<hr />
+### Step-by-Step
 
-<h2>🌐 Deployment</h2>
+```bash
+# 1. Fork the repo, then clone it
+git clone https://github.com/YOUR_USERNAME/pathfinder-ai.git
 
-<p>
-  Deploy instantly using <a href="https://vercel.com/new">Vercel</a>.<br />
-  Need help? See the 
-  <a href="https://nextjs.org/docs/app/building-your-application/deploying">Next.js Deployment Docs</a>.
-</p>
+# 2. Create a feature branch
+git checkout -b feature/your-feature-name
 
-<hr />
+# 3. Make your changes, then commit
+git commit -m "feat: add amazing feature"
 
-<p><strong>Pathfinder AI</strong> – <em>Smart Careers Start Here.</em></p>
+# 4. Push and open a PR
+git push origin feature/your-feature-name
+```
+
+### PR Naming Conventions
+
+```
+feat: add resume analytics dashboard
+fix: resolve onboarding redirect bug
+docs: improve environment setup guide
+chore: update dependencies
+```
+
+### Before Submitting a PR
+
+- [ ] Code is production-ready and tested locally
+- [ ] UI changes are responsive across screen sizes
+- [ ] Existing code conventions are followed
+- [ ] Documentation is updated if needed
+- [ ] Screenshots attached for any UI changes
+- [ ] Synced with latest `main` and conflicts resolved
+
+---
+
+## ✅ Getting Assigned an Issue
+
+1. Comment on the issue you want to work on
+2. Briefly explain your planned approach
+3. Wait for maintainer approval before starting
+4. Begin work only after official assignment
+
+**Example comment:**
+
+```
+Hi maintainers 👋
+
+I'd like to work on this issue under GSSoC'26.
+
+Planned approach:
+- Improve validation flow
+- Optimize API handling
+- Update related documentation
+
+Could you please assign it to me?
+```
+
+---
+
+## 🏷️ Label System
+
+Labels are managed via GitHub Actions automation.
+
+| Category | Labels |
+|---|---|
+| **Difficulty** | `level:beginner` · `level:intermediate` · `level:advanced` · `level:critical` |
+| **Type** | `type:bug` · `type:feature` · `type:docs` · `type:design` · `type:security` |
+| **Domain** | `frontend` · `backend` · `database` · `ai` · `ui/ux` |
+| **Programs** | `Gssoc` · `good first issue` |
+
+---
+
+## 🧪 Development Standards
+
+- **Frontend:** Reusable components, Tailwind conventions, accessibility-first
+- **Backend:** Input validation, RESTful principles, edge case handling
+- **AI Features:** Prompt engineering optimization, fallback handling
+
+### Beginner-Friendly Ideas
+
+- 📖 Documentation improvements
+- 💅 UI polishing & loading skeletons
+- 📱 Mobile responsiveness fixes
+- ♿ Accessibility enhancements
+- 🧪 Unit test coverage
+
+---
+
+## 🏆 Contributors
+
+All contributors are recognized publicly in this README. Major contributors may receive special mentions, and long-term contributors can become collaborators.
+
+<div align="center">
+
+### Everyone who has contributed to PathFinder AI ❤️
+
+<a href="https://github.com/harshdwivediiiii/pathfinder-ai/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=harshdwivediiiii/pathfinder-ai" alt="PathFinder AI Contributors" width="100%" />
+</a>
+
+<br/><br/>
+
+*Want to see your avatar here? [Make a contribution!](CONTRIBUTING.md)*
+
+</div>
+
+---
+
+## 📄 License
+
+This project is licensed under the **[MIT License](LICENSE)** — free to use, modify, and distribute.
+
+---
+
+## 📬 Contact
+
+Have questions or ideas? Reach out:
+
+📧 **[harshvardhandwivedi18@gmail.com](mailto:harshvardhandwivedi18@gmail.com)**
+
+---
+
+## 🌍 Support the Project
+
+If PathFinder AI helped you or you believe in the mission:
+
+⭐ **Star the repository** — helps others discover it  
+🍴 **Fork the project** — build something on top of it  
+🚀 **Contribute during GSSoC'26** — make it better  
+📢 **Share with developers** — spread the word  
+
+---
+
+<div align="center">
+
+**PathFinder AI** — *Smart Careers Start Here.*
+
+[![Star on GitHub](https://img.shields.io/github/stars/harshdwivediiiii/pathfinder-ai?style=social)](https://github.com/harshdwivediiiii/pathfinder-ai)
+[![Fork on GitHub](https://img.shields.io/github/forks/harshdwivediiiii/pathfinder-ai?style=social)](https://github.com/harshdwivediiiii/pathfinder-ai/fork)
+
+</div>

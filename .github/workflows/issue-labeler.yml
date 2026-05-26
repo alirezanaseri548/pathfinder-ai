@@ -1,0 +1,96 @@
+name: Issue Labeler
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Label Issue based on Content
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const title = issue.title.toLowerCase();
+            const body = (issue.body || "").toLowerCase();
+            const content = `${title} ${body}`;
+            
+            const labelsToAdd = new Set();
+            
+            // Type Mapping
+            const typeMap = {
+              'type:bug': ['bug', 'error', 'fix', 'broken', 'issue', 'fail'],
+              'type:feature': ['feature', 'feat', 'add', 'request', 'new'],
+              'type:docs': ['docs', 'documentation', 'readme', 'guide'],
+              'type:testing': ['test', 'testing', 'unit', 'integration'],
+              'type:security': ['security', 'auth', 'vulnerability', 'secret', 'token', 'exploit'],
+              'type:performance': ['performance', 'optimize', 'speed', 'slow', 'lighthouse', 'fast'],
+              'type:design': ['design', 'ui', 'ux', 'style', 'css', 'color', 'layout'],
+              'type:refactor': ['refactor', 'cleanup', 'reorganize'],
+              'type:devops': ['ci', 'cd', 'workflow', 'action', 'deploy', 'github actions'],
+              'type:accessibility': ['accessibility', 'a11y', 'screen reader', 'aria', 'contrast'],
+            };
+
+            // Difficulty Mapping (Only one allowed)
+            const difficultyMap = {
+              'level:beginner': ['beginner', 'good first issue', 'easy', 'simple'],
+              'level:intermediate': ['intermediate', 'moderate'],
+              'level:advanced': ['advanced', 'complex', 'hard'],
+              'level:critical': ['critical', 'urgent', 'emergency', 'blocker'],
+            };
+
+            // Domain Mapping
+            const domainMap = {
+              'frontend': ['ui', 'frontend', 'react', 'component', 'tailwind', 'responsive', 'client'],
+              'backend': ['api', 'backend', 'server', 'node', 'express', 'endpoint'],
+              'database': ['prisma', 'database', 'db', 'sql', 'schema', 'model'],
+              'ai': ['gemini', 'ai', 'model', 'prompt', 'llm', 'assistant'],
+              'ui/ux': ['ux', 'user experience', 'accessibility', 'animation', 'framer'],
+            };
+
+            // Program Mapping
+            const programMap = {
+              'Gssoc': ['gssoc', 'girlscript'],
+            };
+
+            // Detect Types
+            for (const [label, keywords] of Object.entries(typeMap)) {
+              if (keywords.some(k => content.includes(k))) labelsToAdd.add(label);
+            }
+
+            // Detect Domains
+            for (const [label, keywords] of Object.entries(domainMap)) {
+              if (keywords.some(k => content.includes(k))) labelsToAdd.add(label);
+            }
+
+            // Detect Programs
+            for (const [label, keywords] of Object.entries(programMap)) {
+              if (keywords.some(k => content.includes(k))) labelsToAdd.add(label);
+            }
+
+            // Detect Difficulty (Pick the highest one found, or beginner if 'good first issue')
+            let detectedDifficulty = null;
+            if (content.includes('good first issue')) {
+              detectedDifficulty = 'level:beginner';
+              labelsToAdd.add('good first issue');
+              labelsToAdd.add('help wanted');
+            } else {
+              for (const [label, keywords] of Object.entries(difficultyMap)) {
+                if (keywords.some(k => content.includes(k))) {
+                  detectedDifficulty = label;
+                }
+              }
+            }
+            if (detectedDifficulty) labelsToAdd.add(detectedDifficulty);
+
+            if (labelsToAdd.size > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: Array.from(labelsToAdd)
+              });
+            }

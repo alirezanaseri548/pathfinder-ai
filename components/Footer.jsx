@@ -136,7 +136,7 @@ export default function Footer() {
                 label: "GitHub",
               },
               {
-                href: "https://www.linkedin.com/in/harshvardhan-dwivedi-86b375290",
+                href: "https://www.linkedin.com/in/harshvardhan-d-86b375290/",
                 Icon: Linkedin,
                 label: "LinkedIn",
               },

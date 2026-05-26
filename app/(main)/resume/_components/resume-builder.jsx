@@ -90,7 +90,17 @@ export default function ResumeBuilder({ initialContent }) {
 
   useEffect(() => {
     if (saveResult && !isSaving) {
-      toast.success("Resume saved successfully!");
+      // If our new backend validation engine caught an error payload:
+      if (saveResult.success === false) {
+        const errorMessage =
+          saveResult.errors?.content?.[0] ||
+          saveResult.errors?._form?.[0] ||
+          "Server validation rejected payload parameters.";
+        toast.error(errorMessage);
+      } else {
+        // If validation passed and database entry was successful:
+        toast.success("Resume saved successfully!");
+      }
     }
     if (saveError) {
       toast.error(saveError.message || "Failed to save resume");
@@ -128,55 +138,39 @@ export default function ResumeBuilder({ initialContent }) {
 
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const generatePDF = async () => {
-    setIsGenerating(true);
-    try {
-      const html2pdf = (await import("html2pdf.js")).default;
+const generatePDF = async () => {
+  setIsGenerating(true);
 
-      // Create a temporary element with safe styles
-      const element = document.createElement("div");
-      element.setAttribute("id", "print-pdf");
-      let renderedHtml = marked(previewContent || "");
-      renderedHtml = stripOklchStyles(renderedHtml);
+  try {
+    const { jsPDF } = await import("jspdf");
 
-      element.innerHTML = `
-        <div style="background:#fff; color:#000; font-family:Arial, sans-serif; padding: 20px; line-height: 1.6; font-size: 14px;">
-          ${renderedHtml}
-        </div>
-      `;
+    const doc = new jsPDF();
 
-      document.body.appendChild(element);
+    const text = previewContent || "Resume";
 
-      const opt = {
-        margin: [15, 15],
-        filename: "resume.pdf",
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: "#ffffff",
-        },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      };
+    const lines = doc.splitTextToSize(text, 180);
 
-      await html2pdf().set(opt).from(element).save();
+    doc.text(lines, 10, 10);
 
-      document.body.removeChild(element);
-    } catch (error) {
-      console.error("PDF generation error:", error);
-      toast.error("Failed to generate PDF");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+    doc.save("resume.pdf");
+
+  } catch (error) {
+    console.error("FULL PDF ERROR:", error);
+
+    toast.error("Failed to generate PDF. Please try again.");
+
+  } finally {
+    setIsGenerating(false);
+  }
+};
 
   const onSubmit = async (data) => {
     try {
-      const formattedContent = previewContent
-        .replace(/\n/g, "\n")
-        .replace(/\n\s*\n/g, "\n\n")
-        .trim();
-      await saveResumeFn(previewContent);
+     const formattedContent = previewContent
+  .replace(/\n\s*\n/g, "\n\n")
+  .trim();
+
+await saveResumeFn(formattedContent);
     } catch (error) {
       console.error("Save error:", error);
     }

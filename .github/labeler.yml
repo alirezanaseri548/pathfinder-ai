@@ -1,0 +1,60 @@
+# PR Labeler configuration
+# Refer to https://github.com/actions/labeler for more information
+
+frontend:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/**/*'
+      - 'components/**/*'
+      - 'public/**/*'
+      - 'data/**/*'
+      - 'styles/**/*'
+
+backend:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'actions/**/*'
+      - 'lib/**/*'
+      - 'api/**/*'
+      - 'middleware.js'
+
+database:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'prisma/**/*'
+      - '.codex-tmp-prisma/**/*'
+
+ai:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'lib/gemini.js'
+      - 'app/(main)/ai-assistant/**/*'
+      - 'app/(main)/ai-cover-letter/**/*'
+
+"type:docs":
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.md'
+      - 'docs/**/*'
+
+"type:devops":
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.github/workflows/**/*'
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+
+"type:testing":
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.test.*'
+      - '**/*.spec.*'
+      - 'tests/**/*'
+
+"ui/ux":
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app/globals.css'
+      - 'postcss.config.mjs'
+      - 'tailwind.config.js'
+      - 'components/ui/**/*'

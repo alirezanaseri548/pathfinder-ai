@@ -1,18 +1,20 @@
 "use server";
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-// fallback to flash if env missing
-const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+import { generateGeminiContent } from "@/lib/gemini";
+import { buildSecurePrompt } from "@/lib/prompt-safety";
 
 export async function chatWithGemini(prompt) {
   if (!prompt) throw new Error("Prompt is required");
 
+  const securePrompt = buildSecurePrompt({
+    task: "You are Pathfinder AI, a career-focused assistant. Only answer career-related questions. Politely refuse unrelated questions.",
+    untrustedData: [
+      { label: "userQuery", value: prompt, maxLength: 4000 },
+    ],
+  });
+
   try {
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
-    const { response } = await model.generateContent(prompt);
+    const { response } = await generateGeminiContent(securePrompt);
     return response.text();
   } catch (err) {
     // surface Google error message if present

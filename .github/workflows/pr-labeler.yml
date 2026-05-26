@@ -1,0 +1,51 @@
+name: PR Labeler
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/labeler@v5
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          sync-labels: true
+
+      - name: Label PR based on Title
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = context.payload.pull_request.title.toLowerCase();
+            const labelsToAdd = [];
+            
+            const keywordMap = {
+              'bug': ['type:bug', 'bug', 'fix'],
+              'type:feature': ['feature', 'feat', 'add'],
+              'type:docs': ['docs', 'readme', 'documentation'],
+              'type:testing': ['test', 'testing', 'jest', 'cypress'],
+              'type:security': ['security', 'auth', 'vulnerability', 'secret', 'token'],
+              'type:performance': ['performance', 'optimize', 'speed', 'lighthouse'],
+              'type:design': ['design', 'ui', 'ux', 'style', 'css'],
+              'type:refactor': ['refactor', 'cleanup'],
+              'type:devops': ['ci', 'cd', 'workflow', 'action', 'deploy'],
+              'type:accessibility': ['accessibility', 'a11y', 'screen reader'],
+            };
+
+            for (const [label, keywords] of Object.entries(keywordMap)) {
+              if (keywords.some(keyword => title.includes(keyword))) {
+                labelsToAdd.push(label);
+              }
+            }
+
+            if (labelsToAdd.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                labels: labelsToAdd
+              });
+            }
