@@ -45,6 +45,7 @@ it("buildRateLimitResponse returns SSE body and correct headers when sse=true", 
   expect(res.status).toBe(429);
   expect(res.headers.get("Content-Type")).toBe("text/event-stream");
   const text = await res.text();
+  expect(text).toContain("event: error");
   expect(text).toContain("data:");
   const payloadLine = text.split("\n").find((line) => line.startsWith("data: "));
   expect(payloadLine).toBeTruthy();

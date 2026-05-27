@@ -2,6 +2,8 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 
+const MAX_SSE_BUFFER_SIZE = 1024 * 1024;
+
 /**
  * Custom hook that streams AI responses from the /api/generate SSE endpoint.
  *
@@ -21,6 +23,7 @@ export default function useStreamFetch() {
   const isDev = process.env.NODE_ENV !== "production";
 
   const abortControllerRef = useRef(null);
+
   const parseSseEventBlock = useCallback((block) => {
     const lines = block.split(/\r?\n/);
     let event = "message";
@@ -49,6 +52,21 @@ export default function useStreamFetch() {
     };
   }, []);
 
+  const failStream = useCallback(
+    async (reader, message, details, currentText) => {
+      if (isDev) {
+        console.warn("[useStreamFetch] " + message, details);
+      }
+
+      setError(message);
+      setIsLoading(false);
+      await reader.cancel();
+
+      return { status: "error", error: message, finalText: currentText };
+    },
+    [isDev]
+  );
+
   const startStream = useCallback(async (prompt, conversationId = null) => {
     // Cancel any existing stream
     if (abortControllerRef.current) {
@@ -71,29 +89,144 @@ export default function useStreamFetch() {
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-     body: JSON.stringify({
-  prompt,
-  conversationId,
-}),
+        body: JSON.stringify({
+          prompt,
+          conversationId,
+        }),
         signal: controller.signal,
       });
 
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || `Request failed (${response.status})`);
+        const contentType = (response.headers.get("Content-Type") || "").toLowerCase();
+        let parsed = {};
+
+        if (contentType.includes("text/event-stream")) {
+          const rawText = await response.text();
+          const { data } = parseSseEventBlock(rawText);
+
+          if (data) {
+            try {
+              parsed = JSON.parse(data);
+            } catch (parseError) {
+              if (isDev) {
+                console.warn("[useStreamFetch] Failed to parse SSE error payload", parseError, data);
+              }
+            }
+          }
+        } else {
+          parsed = await response.json().catch(() => ({}));
+        }
+
+        const errorMessage =
+          (typeof parsed.error === "string" && parsed.error) ||
+          (typeof parsed.message === "string" && parsed.message) ||
+          `Request failed (${response.status})`;
+
+        throw new Error(errorMessage);
       }
 
       if (!response.body) {
         throw new Error("Readable stream not supported");
       }
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
       let accumulatedText = "";
+      let currentEvent = {
+        event: "message",
+        dataLines: [],
+      };
+
+      const resetCurrentEvent = () => {
+        currentEvent = {
+          event: "message",
+          dataLines: [],
+        };
+      };
+
+      const finalizeCurrentEvent = () => {
+        const event = currentEvent.event;
+        const data = currentEvent.dataLines.join("\n");
+
+        resetCurrentEvent();
+
+        if (event === "message" && !data) {
+          return null;
+        }
+
+        return { event, data };
+      };
+
+      const handleParsedEvent = async ({ event, data }) => {
+        let parsed = {};
+
+        if (data) {
+          try {
+            parsed = JSON.parse(data);
+          } catch (parseError) {
+            return failStream(
+              reader,
+              `Malformed SSE ${event} payload`,
+              { event, data, parseError },
+              accumulatedText
+            );
+          }
+        }
+
+        if (event === "delta") {
+          if (typeof parsed.text !== "string") {
+            return failStream(
+              reader,
+              "Malformed SSE delta payload",
+              { event, parsed },
+              accumulatedText
+            );
+          }
+
+          accumulatedText += parsed.text;
+          setStreamedText(accumulatedText);
+          return null;
+        }
+
+        if (event === "error") {
+          const message =
+            (typeof parsed.message === "string" && parsed.message) ||
+            "Stream failed";
+
+          setError(message);
+          setIsLoading(false);
+          await reader.cancel();
+          return { status: "error", error: message, finalText: accumulatedText };
+        }
+
+        if (event === "done") {
+          const completeText =
+            typeof parsed.finalText === "string" ? parsed.finalText : accumulatedText;
+
+          accumulatedText = completeText;
+          setFinalText(completeText);
+          setStreamedText(completeText);
+          setIsLoading(false);
+          await reader.cancel();
+          return { status: "done", finalText: completeText, meta: parsed };
+        }
+
+        return null;
+      };
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) {
+          if (buffer.trim()) {
+            return failStream(
+              reader,
+              "Malformed SSE stream: incomplete event at end",
+              { buffer },
+              accumulatedText
+            );
+          }
+
           const fallbackFinal = accumulatedText;
           setFinalText(fallbackFinal);
           setStreamedText(fallbackFinal);
@@ -103,65 +236,61 @@ export default function useStreamFetch() {
 
         buffer += decoder.decode(value, { stream: true });
 
+        if (buffer.length > MAX_SSE_BUFFER_SIZE) {
+          return failStream(
+            reader,
+            "SSE buffer exceeded maximum size",
+            { bufferLength: buffer.length },
+            accumulatedText
+          );
+        }
+
         while (true) {
-          const separatorIndex = buffer.search(/\r?\n\r?\n/);
-          if (separatorIndex === -1) break;
-
-          const separator = buffer.slice(separatorIndex).match(/^\r?\n\r?\n/);
-          const separatorLength = separator ? separator[0].length : 2;
-          const rawEvent = buffer.slice(0, separatorIndex);
-          buffer = buffer.slice(separatorIndex + separatorLength);
-
-          if (!rawEvent.trim()) continue;
-
-          const { event, data } = parseSseEventBlock(rawEvent);
-          let parsed = {};
-
-          if (data) {
-            try {
-              parsed = JSON.parse(data);
-            } catch (parseError) {
-              if (isDev) {
-                console.warn(
-                  "[useStreamFetch] Ignoring malformed SSE JSON payload",
-                  parseError,
-                  data
-                );
-              }
-              continue;
-            }
+          const newlineIndex = buffer.indexOf("\n");
+          if (newlineIndex === -1) {
+            break;
           }
 
-          if (event === "delta") {
-            const deltaText = typeof parsed.text === "string" ? parsed.text : "";
-            if (!deltaText) continue;
+          let line = buffer.slice(0, newlineIndex);
+          buffer = buffer.slice(newlineIndex + 1);
 
-            accumulatedText += deltaText;
-            setStreamedText(accumulatedText);
+          if (line.endsWith("\r")) {
+            line = line.slice(0, -1);
+          }
+
+          if (!line) {
+            const completeEvent = finalizeCurrentEvent();
+            if (!completeEvent) {
+              continue;
+            }
+
+            const result = await handleParsedEvent(completeEvent);
+            if (result) {
+              return result;
+            }
+
             continue;
           }
 
-          if (event === "error") {
-            const message =
-              (typeof parsed.message === "string" && parsed.message) ||
-              "Stream failed";
-
-            setError(message);
-            setIsLoading(false);
-            await reader.cancel();
-            return { status: "error", error: message, finalText: accumulatedText };
+          if (line.startsWith(":")) {
+            continue;
           }
 
-          if (event === "done") {
-            const completeText =
-              typeof parsed.finalText === "string" ? parsed.finalText : accumulatedText;
+          const colonIndex = line.indexOf(":");
+          const field = colonIndex === -1 ? line : line.slice(0, colonIndex);
+          let value = colonIndex === -1 ? "" : line.slice(colonIndex + 1);
 
-            accumulatedText = completeText;
-            setFinalText(completeText);
-            setStreamedText(completeText);
-            setIsLoading(false);
-            await reader.cancel();
-            return { status: "done", finalText: completeText, meta: parsed };
+          if (value.startsWith(" ")) {
+            value = value.slice(1);
+          }
+
+          if (field === "event") {
+            currentEvent.event = value || "message";
+            continue;
+          }
+
+          if (field === "data") {
+            currentEvent.dataLines.push(value);
           }
         }
       }
@@ -182,7 +311,7 @@ export default function useStreamFetch() {
       clearTimeout(timeoutId);
       abortControllerRef.current = null;
     }
-  }, [isDev, parseSseEventBlock]);
+  }, [failStream, isDev, parseSseEventBlock]);
 
   const reset = useCallback(() => {
     if (abortControllerRef.current) {
