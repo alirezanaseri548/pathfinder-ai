@@ -167,12 +167,21 @@ export default function useStreamFetch() {
         const { done, value } = await reader.read();
         if (done) {
           if (buffer.trim()) {
-            return failStream(
-              reader,
-              "Malformed SSE stream: incomplete event at end",
-              { buffer },
-              accumulatedText
-            );
+            try {
+              const completeEvent = parseSseEventBlock(buffer);
+              const result = await handleParsedEvent(completeEvent);
+
+              if (result) {
+                return result;
+              }
+            } catch (error) {
+              return failStream(
+                reader,
+                "Malformed SSE stream: incomplete event at end",
+                { buffer, error },
+                accumulatedText
+              );
+            }
           }
 
           const fallbackFinal = accumulatedText;
