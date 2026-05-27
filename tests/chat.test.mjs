@@ -14,7 +14,9 @@ vi.mock("@/lib/prompt-safety", () => ({
   buildSecurePrompt: mocks.buildSecurePrompt,
 }));
 
-vi.spyOn(console, "error").mockImplementation(mocks.consoleError);
+// const consoleErrorSpy = vi
+//   .spyOn(console, "error")
+//   .mockImplementation(() => {});
 
 import { chatWithGemini } from "../actions/chat.js";
 
@@ -48,12 +50,15 @@ describe("chatWithGemini", () => {
   });
 
   it("normalizes Gemini errors", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
     mocks.buildSecurePrompt.mockReturnValue("secure prompt");
     mocks.generateGeminiContent.mockRejectedValue(new Error("quota exceeded"));
 
     await expect(chatWithGemini("Help me with interviews")).rejects.toThrow(
       "Failed to get response from Gemini AI"
     );
-    expect(mocks.consoleError).toHaveBeenCalled();
+    expect(consoleErrorSpy).toHaveBeenCalled();
   });
 });

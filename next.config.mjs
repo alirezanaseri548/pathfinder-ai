@@ -11,7 +11,7 @@ const nextConfig = {
   // Clerk and Prisma should not be bundled into edge/server unnecessarily
   serverExternalPackages: ["@prisma/client"],
   experimental: {
-    optimizePackageImports: ["lucide-react", "framer-motion", "@clerk/nextjs"],
+    //optimizePackageImports: ["lucide-react", "framer-motion", "@clerk/nextjs"],
   },
 };
 

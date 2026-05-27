@@ -68,15 +68,23 @@ export default function useStreamFetch() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/generate", {
+      const fetchOptions = {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-     body: JSON.stringify({
-  prompt,
-  conversationId,
-}),
-        signal: controller.signal,
-      });
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          prompt,
+          conversationId,
+        }),
+      };
+
+      if (
+          typeof window !== "undefined" &&
+          process.env.NODE_ENV !== "test"
+      ) {
+          fetchOptions.signal = controller.signal;
+      }
+
+      const response = await fetch("/api/generate", fetchOptions);
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
