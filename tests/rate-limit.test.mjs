@@ -103,3 +103,44 @@ it("rate limiter refills after elapsed time", async () => {
   expect(refill.allowed).toBe(true);
   expect(refill.remaining).toBe(1);
 });
+
+it("memory store evicts stale buckets lazily via getBucket", async () => {
+  const store = createMemoryRateLimitStore({ bucketTtlMs: 1000, cleanupIntervalMs: 0 });
+
+  await store.setBucket("/api/generate:user:1", {
+    tokens: 2,
+    lastRefillAt: 0,
+    limitPerMinute: 10,
+    burstCapacity: 2,
+  });
+
+  // Call getBucket with a timestamp past the TTL
+  const bucket = await store.getBucket("/api/generate:user:1", 2000);
+  expect(bucket).toBeNull();
+
+  // Verify it was actually deleted from internal storage
+  expect(await store.getBucket("/api/generate:user:1")).toBeNull();
+
+  await store.close();
+});
+
+it("memory store evicts stale buckets periodically via cleanupIntervalMs", async () => {
+  // Use a small cleanup interval (e.g. 50ms) and short bucket TTL (e.g. 10ms)
+  const store = createMemoryRateLimitStore({ bucketTtlMs: 10, cleanupIntervalMs: 50 });
+
+  await store.setBucket("/api/generate:user:1", {
+    tokens: 2,
+    lastRefillAt: Date.now(),
+    limitPerMinute: 10,
+    burstCapacity: 2,
+  });
+
+  // Wait for 100ms for interval to run and clean up
+  await new Promise((resolve) => setTimeout(resolve, 100));
+
+  // The bucket should be gone from the store even when querying at current time
+  const bucket = await store.getBucket("/api/generate:user:1");
+  expect(bucket).toBeNull();
+
+  await store.close();
+});
