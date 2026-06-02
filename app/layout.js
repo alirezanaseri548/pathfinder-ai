@@ -2,6 +2,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "@/components/ui/sonner";
+import PropTypes from "prop-types";
 import { Providers } from "@/components/providers";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
@@ -22,7 +23,12 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }) {
+/**
+ * @param {{ children: React.ReactNode }} props
+ */
+export default function RootLayout(props) {
+  const { children } = props;
+
   return (
     <ClerkProvider
       signInUrl="/sign-in"
@@ -45,3 +51,7 @@ export default function RootLayout({ children }) {
     </ClerkProvider>
   );
 }
+
+RootLayout.propTypes = {
+  children: PropTypes.node.isRequired,
+};

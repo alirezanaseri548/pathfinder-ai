@@ -43,7 +43,7 @@ describe("useStreamFetch", () => {
 
     try {
       server.use(
-        http.post("/api/generate", () => {
+        http.post("http://localhost/api/generate", () => {
           return createSseResponse(["event: delta\ndata: {\"wrong\":true}\n\n"]);
         })
       );
@@ -72,7 +72,7 @@ describe("useStreamFetch", () => {
 
   it("extracts error messages from SSE rate-limit responses", async () => {
     server.use(
-      http.post("/api/generate", () => {
+      http.post("http://localhost/api/generate", () => {
         return new Response(
           'event: error\ndata: {"error":"Too Many Requests","retryAfterSeconds":12}\n\n',
           {
@@ -101,7 +101,7 @@ describe("useStreamFetch", () => {
 
   it("falls back to message fields for JSON errors", async () => {
     server.use(
-      http.post("/api/generate", () => {
+      http.post("http://localhost/api/generate", () => {
         return new Response(JSON.stringify({ message: "No prompt provided" }), {
           status: 400,
           headers: { "Content-Type": "application/json" },

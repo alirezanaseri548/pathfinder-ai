@@ -13,7 +13,7 @@ export default defineConfig({
     },
   },
   test: {
-    environment: "jsdom",
+    environment: "happy-dom",
     globals: true,
     setupFiles: ["./tests/setup.mjs"],
     include: ["tests/**/*.test.{js,mjs,jsx,ts,tsx}"],

@@ -30,6 +30,12 @@ By participating in this project, you agree to keep this space respectful, inclu
 
 ---
 
+## License
+
+By contributing to PathFinder AI, you agree that your contributions will be licensed under the **MIT License** that covers this project. See the [`LICENSE`](LICENSE) file at the project root for full details.
+
+---
+
 ## Getting Started
 
 ### Fork & Clone the Repository
@@ -37,12 +43,14 @@ By participating in this project, you agree to keep this space respectful, inclu
 1. **Fork** this repository by clicking the **Fork** button at the top-right of the [PathFinder AI GitHub page](https://github.com/harshdwivediiiii/pathfinder-ai).
 
 2. **Clone** your fork locally:
+
    ```bash
    git clone https://github.com/YOUR_USERNAME/pathfinder-ai.git
    cd pathfinder-ai
    ```
 
 3. **Add the upstream remote** to stay in sync with the original:
+
    ```bash
    git remote add upstream https://github.com/harshdwivediiiii/pathfinder-ai.git
    ```
@@ -60,21 +68,23 @@ By participating in this project, you agree to keep this space respectful, inclu
 
 #### Prerequisites
 
-| Tool | Purpose |
-|------|---------|
+| Tool                                  | Purpose             |
+| ------------------------------------- | ------------------- |
 | [Node.js](https://nodejs.org/) (v18+) | Runtime for Next.js |
-| [npm](https://npmjs.com/) | Package manager |
-| [PostgreSQL](https://postgresql.org/) | Database |
-| Git | Version control |
+| [npm](https://npmjs.com/)             | Package manager     |
+| [PostgreSQL](https://postgresql.org/) | Database            |
+| Git                                   | Version control     |
 
 #### Steps
 
 1. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 2. **Configure environment variables** — create a `.env.local` file in the root directory:
+
    ```env
    DATABASE_URL=your_postgresql_connection_string
 
@@ -92,15 +102,18 @@ By participating in this project, you agree to keep this space respectful, inclu
    > **💡 No Clerk keys?** The app runs in keyless mode locally — auth routes redirect safely and protected dashboards won't crash. Perfect for rapid frontend development.
 
 3. **Set up Prisma:**
+
    ```bash
    npx prisma generate
    npx prisma migrate dev
    ```
 
 4. **Start the dev server:**
+
    ```bash
    npm run dev
    ```
+
    The app will be available at `http://localhost:3000`.
 
 5. **Keep your fork up to date** before starting any new work:
@@ -146,17 +159,18 @@ Use this format:
 <type>/<short-description>
 ```
 
-| Type | When to use | Example |
-|------|-------------|---------|
-| `feat` | New feature | `feat/resume-analytics-dashboard` |
-| `fix` | Bug fix | `fix/onboarding-redirect-bug` |
-| `docs` | Documentation only | `docs/improve-env-setup-guide` |
-| `chore` | Maintenance (deps, config) | `chore/update-dependencies` |
-| `refactor` | Code restructuring, no behavior change | `refactor/gemini-prompt-helpers` |
-| `test` | Adding or updating tests | `test/cover-letter-generation` |
-| `style` | UI/formatting tweaks | `style/mobile-resume-layout` |
+| Type       | When to use                            | Example                           |
+| ---------- | -------------------------------------- | --------------------------------- |
+| `feat`     | New feature                            | `feat/resume-analytics-dashboard` |
+| `fix`      | Bug fix                                | `fix/onboarding-redirect-bug`     |
+| `docs`     | Documentation only                     | `docs/improve-env-setup-guide`    |
+| `chore`    | Maintenance (deps, config)             | `chore/update-dependencies`       |
+| `refactor` | Code restructuring, no behavior change | `refactor/gemini-prompt-helpers`  |
+| `test`     | Adding or updating tests               | `test/cover-letter-generation`    |
+| `style`    | UI/formatting tweaks                   | `style/mobile-resume-layout`      |
 
 **Create your branch:**
+
 ```bash
 git checkout -b feat/your-feature-name
 ```
@@ -187,6 +201,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) standard
 ```
 
 **Examples for PathFinder AI:**
+
 ```text
 feat(resume): add AI-powered bullet point suggestions
 fix(onboarding): resolve redirect loop after sign-up
@@ -197,6 +212,7 @@ style(dashboard): fix responsive layout on mobile screens
 ```
 
 **Rules:**
+
 - Use **imperative mood** — "add", not "added" or "adds"
 - Keep the subject line under **72 characters**
 - Reference related issues at the bottom: `Closes #12` or `Fixes #7`
@@ -206,6 +222,7 @@ style(dashboard): fix responsive layout on mobile screens
 ## Submitting a Pull Request
 
 1. **Push your branch** to your fork:
+
    ```bash
    git push origin feat/your-feature-name
    ```
@@ -243,12 +260,14 @@ This project is part of **GSSoC'26** — issues must be assigned before you star
 4. Only begin coding after assignment
 
 **Example comment:**
+
 ```markdown
 Hi maintainers 👋
 
 I'd like to work on this issue under GSSoC'26.
 
 Planned approach:
+
 - Improve the validation flow on the resume form
 - Optimize Gemini API error handling
 - Update related documentation
@@ -264,12 +283,12 @@ Could you please assign it to me?
 
 Labels are managed via GitHub Actions automation.
 
-| Category | Labels |
-|----------|--------|
+| Category       | Labels                                                                        |
+| -------------- | ----------------------------------------------------------------------------- |
 | **Difficulty** | `level:beginner` · `level:intermediate` · `level:advanced` · `level:critical` |
-| **Type** | `type:bug` · `type:feature` · `type:docs` · `type:design` · `type:security` |
-| **Domain** | `frontend` · `backend` · `database` · `ai` · `ui/ux` |
-| **Programs** | `Gssoc` · `good first issue` |
+| **Type**       | `type:bug` · `type:feature` · `type:docs` · `type:design` · `type:security`   |
+| **Domain**     | `frontend` · `backend` · `database` · `ai` · `ui/ux`                          |
+| **Programs**   | `Gssoc` · `good first issue`                                                  |
 
 New to open source? Filter by **`good first issue`** and **`level:beginner`** for the most approachable starting points.
 
@@ -280,10 +299,12 @@ New to open source? Filter by **`good first issue`** and **`level:beginner`** fo
 Found a bug or have a feature idea? [Open an issue](https://github.com/harshdwivediiiii/pathfinder-ai/issues)!
 
 **Before opening an issue:**
+
 - Search [existing issues](https://github.com/harshdwivediiiii/pathfinder-ai/issues) to avoid duplicates.
 - Check if it's already fixed in the latest commit on `main`.
 
 **For bug reports, include:**
+
 - Clear, descriptive title
 - Steps to reproduce the problem
 - Expected vs. actual behavior
@@ -291,6 +312,7 @@ Found a bug or have a feature idea? [Open an issue](https://github.com/harshdwiv
 - Relevant error logs from the terminal or browser DevTools
 
 **For feature requests, include:**
+
 - The problem you're solving
 - Your proposed solution
 - Any alternatives you considered
@@ -322,12 +344,12 @@ Not sure where to start? Here are some great entry points:
 
 ---
 
-*This guide is open to improvement too. If something is unclear or missing — feel free to open a PR or issue for it.*
+_This guide is open to improvement too. If something is unclear or missing — feel free to open a PR or issue for it._
 
 ---
 
 <div align="center">
 
-**PathFinder AI** — *Smart Careers Start Here.*
+**PathFinder AI** — _Smart Careers Start Here._
 
 </div>

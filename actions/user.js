@@ -123,30 +123,15 @@ export async function getUserOnboardingStatus() {
     const email = clerkUser.emailAddresses?.[0]?.emailAddress;
     if (!email) throw new Error("User email not found in Clerk!");
 
-    /* 2a ▸ try to find an existing row with this e-mail */
-    user = await db.user.findUnique({ where: { email } });
-
-    if (user) {
-      /* Row exists → just link the clerkUserId (and refresh meta) */
-      user = await db.user.update({
-        where: { id: user.id },
-        data: {
-          clerkUserId: userId,
-          name: clerkUser.firstName ?? user.name,
-          imageUrl: clerkUser.imageUrl ?? user.imageUrl,
-        },
-      });
-    } else {
-      /* 3 ▸ otherwise create a brand-new row */
-      user = await db.user.create({
-        data: {
-          clerkUserId: userId,
-          email,
-          name: clerkUser.firstName ?? "",
-          imageUrl: clerkUser.imageUrl ?? "",
-        },
-      });
-    }
+    /* 2 ▸ create a brand-new row */
+    user = await db.user.create({
+      data: {
+        clerkUserId: userId,
+        email,
+        name: clerkUser.firstName ?? "",
+        imageUrl: clerkUser.imageUrl ?? "",
+      },
+    });
   }
 
   return { isOnboarded: Boolean(user.industry), user, isSignedIn: true };

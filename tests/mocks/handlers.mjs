@@ -24,8 +24,9 @@ export const handlers = [
   http.post("http://localhost/api/generate", () => {
     return createSseResponse([
       "event: delta\ndata: {\"text\":\"Hello \"}\n\n",
+      "event: delta\ndata: {\"text\":\"career \"}\n\n",
       "event: delta\ndata: {\"text\":\"world\"}\n\n",
-      "event: done\ndata: {\"finalText\":\"Hello world\",\"hasContent\":true}\n\n",
+      "event: done\ndata: {\"finalText\":\"Hello career world\",\"hasContent\":true}\n\n",
     ]);
   }),
 

@@ -1,0 +1,33 @@
+{
+  "tasks": {
+    "lint": "deno lint --ignore=node_modules,.next,dist,.git",
+    "test": "echo 'No Deno-compatible tests in this Next.js project'"
+  },
+  "lint": {
+    "include": ["scripts/"],
+    "exclude": [
+      "node_modules/",
+      ".next/",
+      ".git/",
+      "dist/",
+      "build/",
+      ".nuxt/",
+      "coverage/",
+      ".cache/",
+      ".venv/",
+      "venv/",
+      "**/*.jsx",
+      "**/*.tsx",
+      "**/*.ts",
+      "**/app/",
+      "**/components/",
+      "**/lib/",
+      "**/actions/",
+      "**/hooks/"
+    ],
+    "rules": {
+      "tags": ["recommended"],
+      "exclude": ["no-explicit-any", "no-unused-vars"]
+    }
+  }
+}
