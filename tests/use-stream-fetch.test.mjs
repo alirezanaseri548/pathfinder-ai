@@ -9,7 +9,7 @@ import { http } from "msw";
 describe("useStreamFetch", () => {
   it("streams SSE deltas across chunk boundaries and handles multi-line data blocks", async () => {
     server.use(
-      http.post("/api/generate", () => {
+      http.post("http://localhost/api/generate", () => {
         return createSseResponse([
           "event: de",
           "lta\ndata: {\"text\":\"Hello \"}\n\n",
@@ -43,7 +43,7 @@ describe("useStreamFetch", () => {
 
     try {
       server.use(
-        http.post("/api/generate", () => {
+        http.post("http://localhost/api/generate", () => {
           return createSseResponse(["event: delta\ndata: {\"wrong\":true}\n\n"]);
         })
       );
@@ -72,7 +72,7 @@ describe("useStreamFetch", () => {
 
   it("extracts error messages from SSE rate-limit responses", async () => {
     server.use(
-      http.post("/api/generate", () => {
+      http.post("http://localhost/api/generate", () => {
         return new Response(
           'event: error\ndata: {"error":"Too Many Requests","retryAfterSeconds":12}\n\n',
           {
@@ -101,7 +101,7 @@ describe("useStreamFetch", () => {
 
   it("falls back to message fields for JSON errors", async () => {
     server.use(
-      http.post("/api/generate", () => {
+      http.post("http://localhost/api/generate", () => {
         return new Response(JSON.stringify({ message: "No prompt provided" }), {
           status: 400,
           headers: { "Content-Type": "application/json" },
@@ -123,5 +123,28 @@ describe("useStreamFetch", () => {
     });
     expect(result.current.error).toBe("No prompt provided");
     expect(result.current.isLoading).toBe(false);
+  });
+
+  it("handles network failures via direct fetch mock (not MSW)", async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn().mockRejectedValue(new Error("Network failure"));
+
+    try {
+      const { result } = renderHook(() => useStreamFetch());
+
+      let outcome;
+      await act(async () => {
+        outcome = await result.current.startStream("Write a resume summary");
+      });
+
+      expect(outcome.status).toBe("error");
+      expect(outcome.error).toContain("Network failure");
+      expect(result.current.error).toContain("Network failure");
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.streamedText).toBe("");
+      expect(result.current.finalText).toBe("");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 });

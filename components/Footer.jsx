@@ -69,7 +69,7 @@ export default function Footer() {
                 Pathfinder <span className="text-primary ml-1">AI</span>
               </span>
             </Link>
-            <p className="text-muted-foreground leading-relaxed max-w-xs">
+            <p className="text-muted-foreground dark:text-gray-300 leading-relaxed max-w-xs">
               Elevate your career with AI-powered insights, professional resume tools, and personalized interview preparation.
             </p>
             <div className="flex gap-4">
@@ -82,7 +82,7 @@ export default function Footer() {
                   key={label}
                   href={href}
                   target="_blank"
-                  className="h-10 w-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/50 hover:bg-primary/5 transition-all"
+                  className="h-10 w-10 rounded-full border border-border flex items-center justify-center text-muted-foreground dark:text-gray-300 hover:text-primary hover:border-primary/50 hover:bg-primary/5 transition-all"
                 >
                   <Icon className="h-5 w-5" />
                 </Link>
@@ -94,8 +94,17 @@ export default function Footer() {
           <motion.div variants={fadeUp} className="flex flex-col gap-6">
             <h3 className="text-sm font-bold uppercase tracking-widest text-foreground">Explore</h3>
             <ul className="grid gap-3">
+              <li>
+                <button
+                  type="button"
+                  onClick={() => router.push("/dashboard")}
+                  className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors text-sm"
+                >
+                  <LayoutDashboard className="h-4 w-4 transition-transform group-hover:scale-110" />
+                  Dashboard
+                </button>
+              </li>
               {[
-                { label: "Dashboard", href: "/dashboard", Icon: LayoutDashboard },
                 { label: "Resume Builder", href: "/resume", Icon: FileText },
                 { label: "Mock Interviews", href: "/interview", Icon: Bot },
                 { label: "AI Cover Letter", href: "/ai-cover-letter", Icon: PenBox },
@@ -103,7 +112,7 @@ export default function Footer() {
                 <li key={label}>
                   <button
                     onClick={() => go(href)}
-                    className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors text-sm"
+                    className="group flex items-center gap-2 text-muted-foreground dark:text-gray-300 hover:text-primary transition-colors text-sm"
                   >
                     <Icon className="h-4 w-4 transition-transform group-hover:scale-110" />
                     {label}
@@ -117,17 +126,17 @@ export default function Footer() {
           <motion.div variants={fadeUp} className="flex flex-col gap-6">
             <h3 className="text-sm font-bold uppercase tracking-widest text-foreground">Platform</h3>
             <ul className="grid gap-3 text-sm">
-              <li><Link href="#features" className="text-muted-foreground hover:text-primary transition-colors">Features</Link></li>
-              <li><Link href="#how-it-works" className="text-muted-foreground hover:text-primary transition-colors">How it Works</Link></li>
-              <li><Link href="#stats" className="text-muted-foreground hover:text-primary transition-colors">Success Stories</Link></li>
-              <li><Link href="#question" className="text-muted-foreground hover:text-primary transition-colors">Help & FAQ</Link></li>
+              <li><Link href="#features" className="text-muted-foreground dark:text-gray-300 hover:text-primary transition-colors">Features</Link></li>
+              <li><Link href="#how-it-works" className="text-muted-foreground dark:text-gray-300 hover:text-primary transition-colors">How it Works</Link></li>
+              <li><Link href="#stats" className="text-muted-foreground dark:text-gray-300 hover:text-primary transition-colors">Success Stories</Link></li>
+              <li><Link href="#question" className="text-muted-foreground dark:text-gray-300 hover:text-primary transition-colors">Help & FAQ</Link></li>
             </ul>
           </motion.div>
 
           {/* Newsletter */}
           <motion.div variants={fadeUp} className="flex flex-col gap-6">
             <h3 className="text-sm font-bold uppercase tracking-widest text-foreground">Stay Updated</h3>
-            <p className="text-sm text-muted-foreground">Subscribe to our newsletter for the latest career tips and AI features.</p>
+            <p className="text-sm text-muted-foreground dark:text-gray-300">Subscribe to our newsletter for the latest career tips and AI features.</p>
             <div className="flex flex-col gap-2">
               <Input
                 placeholder="Enter your email"
@@ -142,7 +151,7 @@ export default function Footer() {
         </motion.div>
 
         {/* Bottom Bar */}
-        <div className="pt-10 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-muted-foreground">
+        <div className="pt-10 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-muted-foreground dark:text-gray-300">
           <p>© {new Date().getFullYear()} Pathfinder AI. All rights reserved.</p>
           <div className="flex gap-6">
             <Link href="#" className="hover:text-primary transition-colors">Privacy Policy</Link>

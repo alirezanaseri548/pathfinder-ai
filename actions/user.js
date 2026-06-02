@@ -30,13 +30,7 @@ export async function updateUser(data) {
     });
 
     if (!existingInsight) {
-      try {
-        precomputedInsights = await generateAIInsights(data.industry, data);
-      } catch (e) {
-        // generateAIInsights already handles fallbacks, but guard here
-        console.error("Failed to generate insights pre-transaction:", e);
-        precomputedInsights = null;
-      }
+      precomputedInsights = await generateAIInsights(data.industry, data);
     }
 
     const result = await db.$transaction(
@@ -49,12 +43,16 @@ export async function updateUser(data) {
         });
 
         if (!industryInsight) {
-          const insights = precomputedInsights ?? (await generateAIInsights(data.industry, data));
+          // If industryInsight is missing, we must use precomputedInsights.
+          // We moved the AI call outside the transaction to prevent connection pool exhaustion.
+          if (!precomputedInsights) {
+            throw new Error("Industry insights are currently unavailable. Please try again.");
+          }
 
           industryInsight = await tx.industryInsight.create({
             data: {
               industry: data.industry,
-              ...insights,
+              ...precomputedInsights,
               nextUpdate: getIndustryInsightRefreshTime(),
             },
           });
@@ -115,30 +113,15 @@ export async function getUserOnboardingStatus() {
     const email = clerkUser.emailAddresses?.[0]?.emailAddress;
     if (!email) throw new Error("User email not found in Clerk!");
 
-    /* 2a ▸ try to find an existing row with this e-mail */
-    user = await db.user.findUnique({ where: { email } });
-
-    if (user) {
-      /* Row exists → just link the clerkUserId (and refresh meta) */
-      user = await db.user.update({
-        where: { id: user.id },
-        data: {
-          clerkUserId: userId,
-          name: clerkUser.firstName ?? user.name,
-          imageUrl: clerkUser.imageUrl ?? user.imageUrl,
-        },
-      });
-    } else {
-      /* 3 ▸ otherwise create a brand-new row */
-      user = await db.user.create({
-        data: {
-          clerkUserId: userId,
-          email,
-          name: clerkUser.firstName ?? "",
-          imageUrl: clerkUser.imageUrl ?? "",
-        },
-      });
-    }
+    /* 2 ▸ create a brand-new row */
+    user = await db.user.create({
+      data: {
+        clerkUserId: userId,
+        email,
+        name: clerkUser.firstName ?? "",
+        imageUrl: clerkUser.imageUrl ?? "",
+      },
+    });
   }
 
   return { isOnboarded: Boolean(user.industry), user, isSignedIn: true };

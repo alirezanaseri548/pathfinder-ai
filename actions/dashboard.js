@@ -13,8 +13,8 @@ import {
  * Generates industry insights using Gemini AI.
  * If AI generation fails, provides high-quality default fallback insights.
  */
-export async function generateAIInsights(industry) {
-  return generateIndustryInsightData(industry);
+export async function generateAIInsights(industry, profile = null) {
+  return generateIndustryInsightData(industry, profile);
 }
 
 /**

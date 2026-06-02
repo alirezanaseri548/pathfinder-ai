@@ -4,10 +4,9 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { TypeAnimation } from "react-type-animation";
+// Removed unused TypeAnimation import
 import {
   ArrowRight,
-  Sparkles,
   ChevronRight,
   Quote,
 } from "lucide-react";
@@ -140,7 +139,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonial.map((t, i) => (
-              <motion.div key={i} {...fadeUp(i * 0.1)}>
+              <motion.div key={`${t.author}-${t.company}`} {...fadeUp(i * 0.1)}>
                 <Card className="h-full rounded-3xl border-border bg-background shadow-sm hover:shadow-xl transition-all duration-300">
                   <CardContent className="p-8 space-y-6 flex flex-col h-full">
                     <Quote className="h-10 w-10 text-primary/20" />
@@ -177,7 +176,7 @@ export default function LandingPage() {
           <motion.div {...fadeUp(0.2)} className="max-w-3xl mx-auto">
             <Accordion type="single" collapsible className="w-full space-y-4">
               {faqs.map((faq, index) => (
-                <AccordionItem key={index} value={`item-${index}`} className="border rounded-2xl px-6 bg-background/50 backdrop-blur-sm">
+                <AccordionItem key={faq.question} value={`item-${index}`} className="border rounded-2xl px-6 bg-background/50 backdrop-blur-sm">
                   <AccordionTrigger className="text-left font-bold py-5 hover:text-primary transition-colors">
                     {faq.question}
                   </AccordionTrigger>

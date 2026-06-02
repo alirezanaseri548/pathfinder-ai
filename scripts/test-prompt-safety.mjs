@@ -1,3 +1,4 @@
+import process from "node:process";
 import { sanitizePromptInput, wrapUntrustedContent, buildSecurePrompt } from "../lib/prompt-safety.js";
 
 let passed = 0;

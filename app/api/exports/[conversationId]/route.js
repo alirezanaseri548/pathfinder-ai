@@ -1,3 +1,4 @@
+import { db } from "@/lib/prisma";
 import { respondError, ERROR_CODES } from "@/lib/api/error-handler";
 import { generateJsonExport } from "@/lib/export/json-export";
 import { generateMarkdownExport } from "@/lib/export/markdown-export";
@@ -45,8 +46,30 @@ export async function GET(request, context) {
         fileExtension = "json";
     }
 
-    // TODO: Create ExportRecord and AuditLog entries
-    // after migrations are applied.
+    // Create ExportRecord and AuditLog entries
+    await db.$transaction([
+      db.exportRecord.create({
+        data: {
+          userId: user.id,
+          conversationId: conversation.id,
+          format,
+          status: "completed",
+          downloadCount: 1,
+        },
+      }),
+      db.auditLog.create({
+        data: {
+          userId: user.id,
+          action: "EXPORT",
+          resourceType: "CONVERSATION",
+          resourceId: conversation.id,
+          metadata: {
+            format,
+            title: conversation.title,
+          },
+        },
+      }),
+    ]);
 
     console.log("Conversation exported", {
     userId: user.id,

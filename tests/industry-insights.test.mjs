@@ -5,9 +5,13 @@ const mocks = vi.hoisted(() => ({
   cachedGenerateGeminiContent: vi.fn(),
 }));
 
-vi.mock("@/lib/prompt-safety", () => ({
-  buildSecurePrompt: mocks.buildSecurePrompt,
-}));
+vi.mock("@/lib/prompt-safety", async () => {
+  const actual = await vi.importActual("@/lib/prompt-safety");
+  return {
+    ...actual,
+    buildSecurePrompt: mocks.buildSecurePrompt,
+  };
+});
 
 vi.mock("../lib/cache/index.js", async () => {
   const actual = await vi.importActual("../lib/cache/index.js");
@@ -120,14 +124,16 @@ describe("industry insights helper", () => {
       "secure:finance",
       expect.objectContaining({
         tools: [{ googleSearchRetrieval: {} }],
-      })
+      }),
+      expect.any(Object)
     );
     expect(mocks.cachedGenerateGeminiContent).toHaveBeenNthCalledWith(
       2,
       "secure:finance",
       expect.objectContaining({
         generationConfig: { responseMimeType: "application/json" },
-      })
+      }),
+      expect.any(Object)
     );
   });
 

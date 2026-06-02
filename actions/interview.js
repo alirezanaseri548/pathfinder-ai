@@ -225,6 +225,8 @@ export async function saveQuizResult(questions, answers, score, category = "Tech
   });
   if (!user) throw new Error("User not found");
 
+  const profileContext = buildUserProfileContext(user);
+
   const sanitizedAnswers = Array.isArray(answers)
     ? answers.slice(0, questions.length)
     : [];
