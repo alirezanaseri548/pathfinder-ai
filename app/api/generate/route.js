@@ -118,7 +118,7 @@ export async function POST(request) {
   }
 
   if (!userId) {
-    return respondSseError(ERROR_CODES.UNAUTHORIZED);
+    return respondSseError(request, ERROR_CODES.UNAUTHORIZED);
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
