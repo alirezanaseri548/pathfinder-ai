@@ -1,10 +1,11 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { enforceRateLimit } from "../lib/rate-limit.js";
+import { cleanupExpiredBuckets, enforceRateLimit } from "../lib/rate-limit.js";
 import {
   createMemoryRateLimitStore,
   createRateLimitStore,
   createRedisRateLimitStore,
+  DEFAULT_BUCKET_TTL_MS,
 } from "../lib/rate-limit/store.js";
 
 const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
@@ -372,3 +373,72 @@ describe.each(concurrencyStores)(
     });
   }
 );
+
+it("DEFAULT_BUCKET_TTL_MS is exported and has the expected value", () => {
+  expect(DEFAULT_BUCKET_TTL_MS).toBe(10 * 60 * 1000);
+});
+
+it("cleanupExpiredBuckets wrapper does not throw ReferenceError (the bug fix)", async () => {
+  const store = createMemoryRateLimitStore({ bucketTtlMs: 100 });
+
+  // Should not throw — this is the exact scenario that caused the bug
+  await expect(
+    cleanupExpiredBuckets(store, 2000)
+  ).resolves.toBeUndefined();
+
+  await store.close();
+});
+
+it("cleanupExpiredBuckets wrapper cleans up expired buckets via the store", async () => {
+  const store = createMemoryRateLimitStore({ bucketTtlMs: 100 });
+
+  // Set a bucket with a very old lastRefillAt (past TTL)
+  await store.setBucket("/api/generate:user:stale", {
+    tokens: 5,
+    lastRefillAt: 0,
+    limitPerMinute: 10,
+    burstCapacity: 5,
+  });
+
+  // cleanupExpiredBuckets passes DEFAULT_BUCKET_TTL_MS; the store ignores it
+  // in favor of its own bucketTtlMs, so 2000ms > 100ms TTL should evict
+  await cleanupExpiredBuckets(store, 2000);
+
+  expect(await store.getBucket("/api/generate:user:stale")).toBeNull();
+
+  await store.close();
+});
+
+it("cleanupExpiredBuckets wrapper does not remove fresh buckets", async () => {
+  const store = createMemoryRateLimitStore({ bucketTtlMs: 60_000 });
+
+  await store.setBucket("/api/generate:user:fresh", {
+    tokens: 5,
+    lastRefillAt: Date.now(),
+    limitPerMinute: 10,
+    burstCapacity: 5,
+  });
+
+  // now is the same as lastRefillAt, so bucket is fresh
+  await cleanupExpiredBuckets(store, Date.now());
+
+  const bucket = await store.getBucket("/api/generate:user:fresh");
+  expect(bucket).not.toBeNull();
+  expect(bucket.tokens).toBe(5);
+
+  await store.close();
+});
+
+it("cleanupExpiredBuckets wrapper handles store without cleanupExpiredBuckets gracefully", async () => {
+  const store = { kind: "custom" };
+
+  await expect(
+    cleanupExpiredBuckets(store)
+  ).resolves.toBeUndefined();
+});
+
+it("cleanupExpiredBuckets wrapper handles null store gracefully", async () => {
+  await expect(
+    cleanupExpiredBuckets(null)
+  ).resolves.toBeUndefined();
+});
