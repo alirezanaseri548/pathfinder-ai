@@ -33,18 +33,14 @@ export async function updateUser(data) {
     // Generate industry insights outside the DB transaction to avoid
     // long-running external calls inside a DB tx (which can cause timeouts).
     let precomputedInsights = null;
-    let existingInsight = await db.industryInsight.findUnique({
-      where: { industry: profileData.industry },
-    });
-
-    if (!existingInsight) {
-      try {
-        precomputedInsights = await generateAIInsights(profileData.industry, profileData);
-      } catch (e) {
-        // generateAIInsights already handles fallbacks, but guard here
-        console.error("Failed to generate insights pre-transaction:", e);
-        precomputedInsights = null;
-      }
+    try {
+      precomputedInsights = await generateAIInsights(
+        profileData.industry,
+        profileData
+      );
+    } catch (e) {
+      console.error("Failed to generate insights pre-transaction:", e);
+      precomputedInsights = null;
     }
 
     const result = await db.$transaction(
