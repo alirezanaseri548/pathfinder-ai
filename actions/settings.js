@@ -70,19 +70,15 @@ export async function updateUserSettings(userId, data) {
     const user = await getUserByClerkId(userId);
     const settingsData = validation.data;
 
-    const existingSettings = await db.userSettings.findUnique({
-      where: { userId: user.id },
-    });
-
-    if (!existingSettings) {
-      await db.userSettings.create({
-        data: { userId: user.id },
-      });
-    }
-
-    const settings = await db.userSettings.update({
-      where: { userId: user.id },
-      data: settingsData,
+    const settings = await db.userSettings.upsert({
+      where: {
+        userId: user.id,
+      },
+      create: {
+        userId: user.id,
+        ...settingsData,
+      },
+      update: settingsData,
     });
 
     revalidatePath("/settings");
