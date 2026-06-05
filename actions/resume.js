@@ -10,6 +10,7 @@ import { buildUserProfileContext } from "@/lib/ai-context";
 import { validateInput, validateOutput } from "@/lib/validate";
 import { resumeSaveSchema, resumeImprovementSchema } from "@/lib/schemas/forms";
 import { resumeImprovementOutputSchema, SCHEMA_DESCRIPTIONS } from "@/lib/schemas/outputs";
+import { checkRateLimit, formatResetTime } from "@/lib/rate-limit";
 
 export async function saveResume(rawContent) {
   const { userId } = await auth();
@@ -62,6 +63,16 @@ export async function getResume() {
 export async function improveWithAI(rawParams) {
   const { userId } = await auth();
   if (!userId) return { success: false, errors: { _form: ["Sign-in expired. Please authenticate again."] } };
+
+  const limit = await checkRateLimit(userId, "resume");
+  if (!limit.allowed) {
+    return {
+      success: false,
+      errors: {
+        _form: [`Resume improvement limit reached. Resets in ${formatResetTime(limit.resetAt)}.`],
+      },
+    };
+  }
 
   const validation = validateInput(resumeImprovementSchema, rawParams);
   if (!validation.success) return { success: false, errors: validation.errors };

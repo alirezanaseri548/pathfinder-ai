@@ -8,6 +8,7 @@ import { buildUserProfileContext } from "@/lib/ai-context";
 import { validateInput, validateOutput } from "@/lib/validate";
 import { coverLetterInputSchema } from "@/lib/schemas/forms";
 import { coverLetterOutputSchema, SCHEMA_DESCRIPTIONS } from "@/lib/schemas/outputs";
+import { checkRateLimit, formatResetTime } from "@/lib/rate-limit";
 
 /**
  * Generates a professional cover letter using Gemini AI with structured output validation.
@@ -16,6 +17,11 @@ import { coverLetterOutputSchema, SCHEMA_DESCRIPTIONS } from "@/lib/schemas/outp
 export async function generateCoverLetter(data) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
+
+  const limit = await checkRateLimit(userId, "coverLetter");
+  if (!limit.allowed) {
+    throw new Error(`Cover letter limit reached. Resets in ${formatResetTime(limit.resetAt)}.`);
+  }
 
   const validation = validateInput(coverLetterInputSchema, data);
   if (!validation.success) return { success: false, errors: validation.errors };

@@ -7,12 +7,24 @@ import { buildSecurePrompt } from "@/lib/prompt-safety";
 import { buildUserProfileContext } from "@/lib/ai-context";
 import { validateInput } from "@/lib/validate";
 import { chatPromptSchema } from "@/lib/schemas/forms";
+import { checkRateLimit, formatResetTime } from "@/lib/rate-limit";
 
 export async function chatWithGemini(prompt) {
   const validation = validateInput(chatPromptSchema, { prompt });
   if (!validation.success) return { success: false, errors: validation.errors };
 
   const { userId } = await auth();
+    if (userId) {
+      const limit = await checkRateLimit(userId, "chat");
+      if (!limit.allowed) {
+        return {
+          success: false,
+          errors: {
+            _form: [`Chat limit reached. Resets in ${formatResetTime(limit.resetAt)}.`],
+          },
+        };
+      }
+    }
   const user = userId
     ? await db.user.findUnique({
         where: { clerkUserId: userId },

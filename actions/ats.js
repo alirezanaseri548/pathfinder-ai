@@ -9,6 +9,7 @@ import { buildUserProfileContext } from "@/lib/ai-context";
 import { validateInput, parseAIJson } from "@/lib/validate";
 import { atsAnalysisSchema } from "@/lib/schemas/forms";
 import { normalizeAtsSuggestions } from "@/lib/ats";
+import { checkRateLimit, formatResetTime } from "@/lib/rate-limit";
 
 /**
  * Runs an ATS analysis using Gemini AI and persists the result safely.
@@ -16,8 +17,19 @@ import { normalizeAtsSuggestions } from "@/lib/ats";
 export async function analyzeATS(rawParams) {
   try {
     const { userId } = await auth();
+
     if (!userId) {
       return { success: false, errors: { _form: ["Sign-in required to scan applications."] } };
+    }
+
+    const limit = await checkRateLimit(userId, "ats");
+    if (!limit.allowed) {
+      return {
+        success: false,
+        errors: {
+          _form: [`ATS analysis limit reached. Resets in ${formatResetTime(limit.resetAt)}.`],
+        },
+      };
     }
 
     const validation = validateInput(atsAnalysisSchema, rawParams);

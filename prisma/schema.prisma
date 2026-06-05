@@ -203,3 +203,16 @@ model UserSettings {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+model AiRateLimit {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  windowStart DateTime
+  count     Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, action, windowStart])
+  @@index([userId, action])
+}
