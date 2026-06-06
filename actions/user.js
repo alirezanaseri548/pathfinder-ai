@@ -48,6 +48,24 @@ export async function updateUser(data) {
         /* -----------------------------------------------------------
          * 1. Ensure an IndustryInsight row exists (create if missing)
          * --------------------------------------------------------- */
+        const industryInsight = precomputedInsights
+          ? await tx.industryInsight.upsert({
+              where: { industry: data.industry },
+              update: {},
+              create: {
+                industry: data.industry,
+                ...precomputedInsights,
+                nextUpdate: getIndustryInsightRefreshTime(),
+              },
+            })
+          : await tx.industryInsight.findUnique({
+              where: { industry: data.industry },
+            });
+
+        if (!industryInsight) {
+          throw new Error(
+            "Industry insights are currently unavailable. Please try again."
+          );
         let industryInsight = await tx.industryInsight.findUnique({
           where: { industry: profileData.industry },
         });
@@ -119,9 +137,11 @@ export async function getUserOnboardingStatus() {
     const email = clerkUser.emailAddresses?.[0]?.emailAddress;
     if (!email) throw new Error("User email not found in Clerk!");
 
-    /* 2 ▸ create a brand-new row */
-    user = await db.user.create({
-      data: {
+    /* 2 ▸ create a brand-new row (use upsert to prevent race conditions) */
+    user = await db.user.upsert({
+      where: { clerkUserId: userId },
+      update: {},
+      create: {
         clerkUserId: userId,
         email,
         name: clerkUser.firstName ?? "",
