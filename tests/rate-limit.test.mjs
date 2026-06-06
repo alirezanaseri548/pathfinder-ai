@@ -71,9 +71,17 @@ function makeFakeRedisClient() {
       lastRefillAt = now;
 
       let allowed = 0;
+      let retryAfterSeconds = 0;
+
       if (tokens >= 1) {
         tokens -= 1;
         allowed = 1;
+      } else {
+        const missingTokens = 1 - tokens;
+        retryAfterSeconds =
+          limitPerMinute > 0
+            ? Math.max(1, Math.ceil((missingTokens / limitPerMinute) * 60))
+            : 60;
       }
 
       data.set(
@@ -81,7 +89,7 @@ function makeFakeRedisClient() {
         JSON.stringify({ tokens, lastRefillAt, limitPerMinute, burstCapacity })
       );
 
-      return [allowed, Math.floor(tokens), String(tokens)];
+      return [allowed, Math.floor(tokens), retryAfterSeconds];
     },
   };
 }
