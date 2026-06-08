@@ -60,6 +60,47 @@ const encodeSseEvent = (encoder, event, payload) => {
   return encoder.encode(`event: ${event}\ndata: ${JSON.stringify(safePayload)}\n\n`);
 };
 
+function createCachedSseResponse({
+  text,
+  headers,
+  cacheStatus,
+  deduped = false,
+  debug = null,
+}) {
+  const encoder = new TextEncoder();
+
+  const cachedStream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(
+        encodeSseEvent(encoder, "delta", {
+          text,
+          cached: true,
+          ...(deduped ? { deduped: true } : {}),
+        })
+      );
+
+      controller.enqueue(
+        encodeSseEvent(encoder, "done", {
+          finalText: text,
+          hasContent: true,
+          cached: true,
+          ...(deduped ? { deduped: true } : {}),
+          ...(debug ? { debug } : {}),
+        })
+      );
+
+      controller.close();
+    },
+  });
+
+  const responseHeaders = new Headers(headers);
+  responseHeaders.set("X-Cache", cacheStatus);
+
+  return new Response(cachedStream, {
+    headers: responseHeaders,
+  });
+}
+
 const extractChunkText = (chunk) => {
   if (!chunk) return "";
 
@@ -184,36 +225,12 @@ export async function POST(request) {
   );
 
   if (existingCachedResponse) {
-  const encoder = new TextEncoder();
-
-  const cachedStream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(
-        encodeSseEvent(encoder, "delta", {
-          text: existingCachedResponse,
-          cached: true,
-        })
-      );
-
-      controller.enqueue(
-        encodeSseEvent(encoder, "done", {
-          finalText: existingCachedResponse,
-          hasContent: true,
-          cached: true,
-        })
-      );
-
-      controller.close();
-    },
-  });
-
-  return new Response(cachedStream, {
-    headers: {
-      ...SSE_BASE_HEADERS,
-      "X-Cache": "HIT",
-    },
-  });
-}
+    return createCachedSseResponse({
+      text: existingCachedResponse,
+      headers: SSE_BASE_HEADERS,
+      cacheStatus: "HIT",
+    });
+  }
 
   // Check for pending request (deduplication)
   const pendingRequest = await getPendingGenerationRequest(
@@ -235,37 +252,13 @@ export async function POST(request) {
     );
 
     if (cachedAfterPending) {
-      const encoder = new TextEncoder();
-      const cachedStream = new ReadableStream({
-        start(controller) {
-          controller.enqueue(
-            encodeSseEvent(encoder, "delta", {
-              text: cachedAfterPending,
-              cached: true,
-              deduped: true,
-            })
-          );
-
-          controller.enqueue(
-            encodeSseEvent(encoder, "done", {
-              finalText: cachedAfterPending,
-              hasContent: true,
-              cached: true,
-              deduped: true,
-            })
-          );
-
-          controller.close();
-        },
-      });
-
-      return new Response(cachedStream, {
-        headers: {
-          ...SSE_BASE_HEADERS,
-          "X-Cache": "DEDUP",
-        },
-      });
-    }
+  return createCachedSseResponse({
+    text: cachedAfterPending,
+    headers: SSE_BASE_HEADERS,
+    cacheStatus: "DEDUP",
+    deduped: true,
+  });
+}
   }
 
   if (conversationId) {
@@ -394,39 +387,16 @@ Rules:
 
     const encoder = new TextEncoder();
 
-    const cachedStream = new ReadableStream({
-      start(controller) {
-        controller.enqueue(
-          encodeSseEvent(encoder, "delta", {
-            text: restrictedCachedResponse,
-            cached: true,
-          })
-        );
-
-        controller.enqueue(
-          encodeSseEvent(encoder, "done", {
-            finalText: restrictedCachedResponse,
-            hasContent: true,
-            cached: true,
-            ...(isDev && {
-              debug: {
-                ...aiContext.debug,
-                promptContext: aiContext.context,
-              },
-            }),
-          })
-        );
-
-        controller.close();
-      },
-    });
-
-    return new Response(cachedStream, {
-      headers: (() => {
-        const h = new Headers(headers);
-        h.set("X-Cache", "HIT");
-        return h;
-      })(),
+       return createCachedSseResponse({
+      text: restrictedCachedResponse,
+      headers,
+      cacheStatus: "HIT",
+      debug: isDev
+        ? {
+            ...aiContext.debug,
+            promptContext: aiContext.context,
+          }
+        : null,
     });
   }
 
