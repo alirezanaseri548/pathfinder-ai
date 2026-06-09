@@ -136,7 +136,10 @@ Respond ONLY with a valid JSON object in this exact format (no markdown, no code
     }
 
     // Reassemble into plain string for backward compatibility with existing DB/UI
-    const improvedText = result.data.improvedContent;
+    const highlightsText = result.data.highlights && result.data.highlights.length > 0
+      ? "\n\n" + result.data.highlights.map((h) => `- ${h}`).join("\n")
+      : "";
+    const improvedText = `${result.data.improvedContent}${highlightsText}`;
     return { success: true, data: improvedText };
   } catch (error) {
     console.error("Error optimizing structural field elements:", error);
