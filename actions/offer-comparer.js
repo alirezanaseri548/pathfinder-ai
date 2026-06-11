@@ -5,6 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { generateGeminiContent } from "@/lib/gemini";
+import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
 
 export async function compareOffers(offers) {
   const { userId } = await auth();
@@ -13,6 +14,18 @@ export async function compareOffers(offers) {
   const user = await db.user.findUnique({ where: { clerkUserId: userId } });
   if (!user) return { success: false, errors: { _form: ["User not found"] } };
 
+  const rateLimitResult = await checkRateLimit(user.id, "offerComparer");
+  if (!rateLimitResult.allowed) {
+    return {
+      success: false,
+      errors: {
+        _form: [
+          `Rate limit exceeded. Try again in ${formatResetTime(rateLimitResult.resetAt)}.`,
+        ],
+      },
+    };
+  }
+  
   if (!offers || offers.length < 2) {
     return { success: false, errors: { _form: ["Please provide at least two offers to compare."] } };
   }
