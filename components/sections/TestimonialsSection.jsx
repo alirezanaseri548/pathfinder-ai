@@ -8,7 +8,10 @@ import { testimonial } from "@/data/testimonial";
 
 export function TestimonialsSection() {
   return (
-    <section id="stats" className="relative py-20 sm:py-24 md:py-32 lg:py-40 overflow-hidden">
+<section
+  id="stats"
+  className="relative py-20 sm:py-24 md:py-32 lg:py-40 overflow-hidden"
+>
       <div className="container mx-auto px-4 md:px-6">
         <FadeUp className="max-w-3xl mx-auto text-center mb-20 space-y-4">
           <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground">

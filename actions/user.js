@@ -96,25 +96,7 @@ export async function getUserOnboardingStatus() {
       return { isOnboarded: false, user: null, isSignedIn: false };
     }
 
-<<<<<<< HEAD
-  /* 1 ▸ look up by Clerk ID */
-  let user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-
-  if (!user) {
-    /* 2 ▸ pull data from Clerk */
-    const backend = await clerkClient();
-    const clerkUser = await backend.users.getUser(userId);
-
-    const email = clerkUser.emailAddresses?.[0]?.emailAddress;
-    if (!email) throw new Error("User email not found in Clerk!");
-
-    /* 2 ▸ create a brand-new row (use upsert to prevent race conditions) */
-    user = await db.user.upsert({
-=======
     let user = await db.user.findUnique({
->>>>>>> d7f2f9f (dockerization and production check)
       where: { clerkUserId: userId },
     });
 
@@ -148,14 +130,4 @@ export async function getUserOnboardingStatus() {
     console.error("Error getting user onboarding status:", error);
     return { isOnboarded: false, user: null, isSignedIn: false, error: error.message };
   }
-<<<<<<< HEAD
-
-return {
-  isOnboarded: Boolean(user.industry),
-  user,
-  isSignedIn: true,
-};
 }
-=======
-}
->>>>>>> d7f2f9f (dockerization and production check)

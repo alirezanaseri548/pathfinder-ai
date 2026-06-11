@@ -8,7 +8,7 @@ import { FadeUp } from "@/components/motion";
 
 export function CTASection() {
   return (
-    <section id="contact" className="relative py-32 md:py-48 overflow-hidden">
+    <section id="contact" className="relative py-8 md:py-12 overflow-hidden">
       <div className="container mx-auto px-4 md:px-6">
         <FadeUp>
           <div className="relative max-w-5xl mx-auto rounded-3xl overflow-hidden border border-primary/20 bg-gradient-to-br from-primary/5 via-background to-primary/5 p-12 md:p-24 text-center shadow-2xl shadow-primary/5">

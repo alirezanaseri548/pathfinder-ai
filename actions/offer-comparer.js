@@ -7,6 +7,7 @@ import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { generateGeminiContent } from "@/lib/gemini";
 import { offersComparisonSchema } from "@/lib/schemas/forms";
 import { validateInput } from "@/lib/validate";
+import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
 
 export async function compareOffers(offers) {
   const { userId } = await auth();
@@ -14,6 +15,18 @@ export async function compareOffers(offers) {
 
   const user = await db.user.findUnique({ where: { clerkUserId: userId } });
   if (!user) return { success: false, errors: { _form: ["User not found"] } };
+
+  const rateLimitResult = await checkRateLimit(user.id, "offerComparer");
+  if (!rateLimitResult.allowed) {
+    return {
+      success: false,
+      errors: {
+        _form: [
+          `Rate limit exceeded. Try again in ${formatResetTime(rateLimitResult.resetAt)}.`,
+        ],
+      },
+    };
+  }
 
   // Validate offers with schema
   const validation = validateInput(offersComparisonSchema, offers);

@@ -39,15 +39,9 @@ function normalizeSettingsInput(data) {
 }
 
 export async function getUserSettings() {
-<<<<<<< HEAD
-  const { userId: authenticatedUserId } = await auth();
-
-  if (!authenticatedUserId) {
-=======
   const { userId } = await auth();
 
   if (!userId) {
->>>>>>> d7f2f9f (dockerization and production check)
     throw new Error("Unauthorized");
   }
 

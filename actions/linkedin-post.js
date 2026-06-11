@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { generateGeminiContent } from "@/lib/gemini";
 import { buildUserProfileContext } from "@/lib/ai-context";
+import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
 
 export async function generateLinkedInPosts(topic) {
   const { userId } = await auth();
@@ -20,6 +21,18 @@ export async function generateLinkedInPosts(topic) {
   });
   if (!user) return { success: false, errors: { _form: ["User not found"] } };
 
+  const rateLimitResult = await checkRateLimit(user.id, "linkedin");
+  if (!rateLimitResult.allowed) {
+    return {
+      success: false,
+      errors: {
+        _form: [
+          `Rate limit exceeded. Try again in ${formatResetTime(rateLimitResult.resetAt)}.`,
+        ],
+      },
+    };
+  }
+  
   const prompt = buildSecurePrompt({
     context: buildUserProfileContext(user),
     task: `You are an expert personal branding coach and social media manager. 

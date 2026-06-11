@@ -156,7 +156,6 @@ export async function getCoverLetter(id) {
  */
 export async function deleteCoverLetter(id) {
   try {
-<<<<<<< HEAD
     if (!id || typeof id !== "string" || id.trim().length === 0) {
       return { success: false, errors: { _form: ["Invalid cover letter identifier."] } };
     }
@@ -184,26 +183,5 @@ export async function deleteCoverLetter(id) {
   } catch (error) {
     console.error("Failed to delete cover letter:", error);
     return { success: false, errors: { _form: [error.message || String(error)] } };
-=======
-    const { userId } = await auth();
-    if (!userId) return { success: false, errors: { _form: ["Unauthorized"] } };
-
-    const user = await db.user.findUnique({
-      where: { clerkUserId: userId },
-    });
-    if (!user) return { success: false, errors: { _form: ["User not found"] } };
-
-    await db.coverLetter.deleteMany({
-      where: {
-        id,
-        userId: user.id,
-      },
-    });
-
-    return { success: true };
-  } catch (error) {
-    console.error("Error deleting cover letter:", error);
-    return { success: false, errors: { _form: [error.message] } };
->>>>>>> d7f2f9f (dockerization and production check)
   }
 }

@@ -323,11 +323,9 @@ export async function POST(request) {
   });
 
   const aiContext = buildUserAiContext(user, recentMessages.reverse());
-<<<<<<< HEAD
-=======
+
   const clientIp = request.headers.get("x-real-ip") || "anonymous";
   cacheUser = userId || clientIp;
->>>>>>> d7f2f9f (dockerization and production check)
 
   const restrictedPrompt = buildSecurePrompt({
     context: aiContext.context,
@@ -358,11 +356,8 @@ Rules:
     ],
   });
 
-<<<<<<< HEAD
+
   const restrictedCachedResponse = await getCachedResponse(
-=======
-  existingCachedResponse = await getCachedResponse(
->>>>>>> d7f2f9f (dockerization and production check)
     cacheUser,
     restrictedPrompt
   );
@@ -398,7 +393,7 @@ Rules:
 
     const encoder = new TextEncoder();
 
-       return createCachedSseResponse({
+    return createCachedSseResponse({
       text: restrictedCachedResponse,
       headers,
       cacheStatus: "HIT",
