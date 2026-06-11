@@ -73,6 +73,9 @@ model User {
   assignmentGrades     AssignmentGrade[]
   burnoutAssessments   BurnoutAssessment[]
   sideHustleIdeas      SideHustleIdea[]
+  remoteWorkPitches    RemoteWorkPitch[]
+  internalTransfers    InternalTransfer[]
+  careerBreakPlans     CareerBreakPlan[]
   settings             UserSettings?
 
   exportRecords ExportRecord[]
@@ -542,6 +545,45 @@ model SideHustleIdea {
   skills         String   @db.Text
   interests      String   @db.Text
   ideasData      Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model RemoteWorkPitch {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String
+  reasons        String   @db.Text
+  objections     String   @db.Text
+  pitchData      Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model InternalTransfer {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentRole    String
+  targetRole     String
+  reasons        String   @db.Text
+  transferData   Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model CareerBreakPlan {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  duration       String
+  reason         String   @db.Text
+  returnGoals    String   @db.Text
+  planData       Json
   createdAt      DateTime @default(now())
 
   @@index([userId])

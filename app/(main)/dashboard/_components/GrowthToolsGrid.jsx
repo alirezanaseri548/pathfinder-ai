@@ -6,8 +6,8 @@ import {
   ScanSearch, Mic, FileText, Mail, Briefcase, ChevronRight,
   Flame, Linkedin, Star, Video, LayoutList, Lightbulb, 
   DollarSign, Calculator, Send, ArrowRightLeft, CalendarClock,
-  DoorOpen, TrendingUp, FileSignature, BrainCircuit, Compass,
-  Coffee, ShieldAlert, Code2, HeartPulse, Rocket
+  Coffee, ShieldAlert, Code2, HeartPulse, Rocket,
+  Home, Workflow, CalendarHeart
 } from "lucide-react";
 
 const TOOL_CATEGORIES = [
@@ -58,6 +58,9 @@ const TOOL_CATEGORIES = [
       { name: "Layoff Strategist", desc: "Severance & recovery", icon: ShieldAlert, color: "bg-blue-500/10 text-blue-500 border-blue-500/20", href: "/layoff-strategist" },
       { name: "Burnout Coach", desc: "Boundary setting", icon: HeartPulse, color: "bg-rose-500/10 text-rose-500 border-rose-500/20", href: "/burnout-coach" },
       { name: "Side Hustle", desc: "Micro-SaaS ideas", icon: Rocket, color: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20", href: "/side-hustle" },
+      { name: "Remote Work", desc: "Pitch WFH or 4-day week", icon: Home, color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20", href: "/remote-work" },
+      { name: "Internal Transfer", desc: "Move teams gracefully", icon: Workflow, color: "bg-blue-500/10 text-blue-500 border-blue-500/20", href: "/internal-transfer" },
+      { name: "Sabbatical Planner", desc: "Plan your career break", icon: CalendarHeart, color: "bg-violet-500/10 text-violet-500 border-violet-500/20", href: "/career-break" },
       { name: "Explore Careers", desc: "Discover & Compare", icon: Compass, color: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20", href: "/explore" },
     ]
   }

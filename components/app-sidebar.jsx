@@ -43,7 +43,10 @@ import {
   Compass,
   Code2,
   HeartPulse,
-  Rocket
+  Rocket,
+  Home,
+  Workflow,
+  CalendarHeart
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -105,6 +108,9 @@ const MENU_GROUPS = [
       { href: "/layoff-strategist", label: "Layoff Strategist", icon: <ShieldAlert className="h-4 w-4 text-blue-500" /> },
       { href: "/burnout-coach", label: "Burnout Coach", icon: <HeartPulse className="h-4 w-4 text-rose-500" /> },
       { href: "/side-hustle", label: "Side Hustle Ideas", icon: <Rocket className="h-4 w-4 text-cyan-500" /> },
+      { href: "/remote-work", label: "Remote Work Negotiator", icon: <Home className="h-4 w-4 text-emerald-500" /> },
+      { href: "/internal-transfer", label: "Internal Transfer", icon: <Workflow className="h-4 w-4 text-blue-500" /> },
+      { href: "/career-break", label: "Sabbatical Planner", icon: <CalendarHeart className="h-4 w-4 text-violet-500" /> },
     ]
   },
   {
