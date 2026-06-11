@@ -7,7 +7,7 @@ import {
   Flame, Linkedin, Star, Video, LayoutList, Lightbulb, 
   DollarSign, Calculator, Send, ArrowRightLeft, CalendarClock,
   DoorOpen, TrendingUp, FileSignature, BrainCircuit, Compass,
-  Coffee, ShieldAlert
+  Coffee, ShieldAlert, Code2, HeartPulse, Rocket
 } from "lucide-react";
 
 const TOOL_CATEGORIES = [
@@ -32,6 +32,7 @@ const TOOL_CATEGORIES = [
       { name: "Cheat Sheet", desc: "Quick prep guide", icon: FileText, color: "bg-zinc-500/10 text-zinc-500 border-zinc-500/20", href: "/interview/cheat-sheet" },
       { name: "Behavioral Prep", desc: "Beat personality tests", icon: BrainCircuit, color: "bg-rose-500/10 text-rose-500 border-rose-500/20", href: "/behavioral-prep" },
       { name: "Coffee Chat", desc: "Mock networking", icon: Coffee, color: "bg-amber-500/10 text-amber-500 border-amber-500/20", href: "/coffee-chat" },
+      { name: "Take-Home Grader", desc: "Ace the technical test", icon: Code2, color: "bg-violet-500/10 text-violet-500 border-violet-500/20", href: "/assignment-grader" },
     ]
   },
   {
@@ -55,6 +56,8 @@ const TOOL_CATEGORIES = [
       { name: "Freelance Proposals", desc: "Win contracts", icon: FileSignature, color: "bg-teal-500/10 text-teal-500 border-teal-500/20", href: "/freelance-proposal" },
       { name: "Resignation Letter", desc: "Quit professionally", icon: DoorOpen, color: "bg-red-500/10 text-red-500 border-red-500/20", href: "/resignation-letter" },
       { name: "Layoff Strategist", desc: "Severance & recovery", icon: ShieldAlert, color: "bg-blue-500/10 text-blue-500 border-blue-500/20", href: "/layoff-strategist" },
+      { name: "Burnout Coach", desc: "Boundary setting", icon: HeartPulse, color: "bg-rose-500/10 text-rose-500 border-rose-500/20", href: "/burnout-coach" },
+      { name: "Side Hustle", desc: "Micro-SaaS ideas", icon: Rocket, color: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20", href: "/side-hustle" },
       { name: "Explore Careers", desc: "Discover & Compare", icon: Compass, color: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20", href: "/explore" },
     ]
   }

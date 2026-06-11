@@ -70,6 +70,9 @@ model User {
   layoffStrategies     LayoffStrategy[]
   coffeeChatSessions   CoffeeChatSession[]
   equityAnalyses       EquityAnalysis[]
+  assignmentGrades     AssignmentGrade[]
+  burnoutAssessments   BurnoutAssessment[]
+  sideHustleIdeas      SideHustleIdea[]
   settings             UserSettings?
 
   exportRecords ExportRecord[]
@@ -503,6 +506,42 @@ model EquityAnalysis {
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   offerDetails   Json
   analysis       Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model AssignmentGrade {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt         String   @db.Text
+  solution       String   @db.Text
+  gradeData      Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model BurnoutAssessment {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  symptoms       String   @db.Text
+  workload       String   @db.Text
+  assessment     Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model SideHustleIdea {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills         String   @db.Text
+  interests      String   @db.Text
+  ideasData      Json
   createdAt      DateTime @default(now())
 
   @@index([userId])

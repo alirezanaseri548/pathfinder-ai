@@ -40,7 +40,10 @@ import {
   LayoutList,
   Coffee,
   ShieldAlert,
-  Compass
+  Compass,
+  Code2,
+  HeartPulse,
+  Rocket
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -74,6 +77,7 @@ const MENU_GROUPS = [
       { href: "/interview/cheat-sheet", label: "Cheat Sheet", icon: <FileSearch className="h-4 w-4 text-zinc-500" /> },
       { href: "/behavioral-prep", label: "Behavioral Prep", icon: <BrainCircuit className="h-4 w-4 text-rose-500" /> },
       { href: "/coffee-chat", label: "Coffee Chat", icon: <Coffee className="h-4 w-4 text-amber-500" /> },
+      { href: "/assignment-grader", label: "Take-Home Grader", icon: <Code2 className="h-4 w-4 text-violet-500" /> },
     ]
   },
   {
@@ -99,6 +103,8 @@ const MENU_GROUPS = [
       { href: "/roadmap", label: "Career Roadmap", icon: <Map className="h-4 w-4 text-amber-500" /> },
       { href: "/resignation-letter", label: "Resignation Letter", icon: <DoorOpen className="h-4 w-4 text-red-500" /> },
       { href: "/layoff-strategist", label: "Layoff Strategist", icon: <ShieldAlert className="h-4 w-4 text-blue-500" /> },
+      { href: "/burnout-coach", label: "Burnout Coach", icon: <HeartPulse className="h-4 w-4 text-rose-500" /> },
+      { href: "/side-hustle", label: "Side Hustle Ideas", icon: <Rocket className="h-4 w-4 text-cyan-500" /> },
     ]
   },
   {
