@@ -720,15 +720,16 @@ export async function getAssessment(id) {
     });
     if (!user) return null;
 
-<<<<<<< HEAD
-  const assessment = await db.assessment.findFirst({
-    where: {
-      id,
-      userId: user.id,
-    },
-  });
-
-  return assessment;
+    return db.assessment.findFirst({
+      where: {
+        id,
+        userId: user.id,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching assessment:", error);
+    return null;
+  }
 }
 
 /**
@@ -800,16 +801,5 @@ Provide feedback in JSON format ONLY:
   } catch (error) {
     console.error("Video evaluation error:", error);
     return { success: false, error: "Failed to evaluate video answer." };
-=======
-    return db.assessment.findFirst({
-      where: {
-        id,
-        userId: user.id,
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching assessment:", error);
-    return null;
->>>>>>> d7f2f9f (dockerization and production check)
   }
 }

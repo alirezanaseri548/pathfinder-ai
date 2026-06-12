@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { FileText, Sparkles, CheckCircle } from "lucide-react";
 import { FadeUp } from "@/components/motion";
 import { ScrollSpinningResume } from "@/components/ScrollSpinningResume";

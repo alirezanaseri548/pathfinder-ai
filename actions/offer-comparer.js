@@ -5,6 +5,9 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { generateGeminiContent } from "@/lib/gemini";
+import { offersComparisonSchema } from "@/lib/schemas/forms";
+import { validateInput } from "@/lib/validate";
+import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
 
 export async function compareOffers(offers) {
   const { userId } = await auth();
@@ -13,16 +16,32 @@ export async function compareOffers(offers) {
   const user = await db.user.findUnique({ where: { clerkUserId: userId } });
   if (!user) return { success: false, errors: { _form: ["User not found"] } };
 
-  if (!offers || offers.length < 2) {
-    return { success: false, errors: { _form: ["Please provide at least two offers to compare."] } };
+  const rateLimitResult = await checkRateLimit(user.id, "offerComparer");
+  if (!rateLimitResult.allowed) {
+    return {
+      success: false,
+      errors: {
+        _form: [
+          `Rate limit exceeded. Try again in ${formatResetTime(rateLimitResult.resetAt)}.`,
+        ],
+      },
+    };
   }
+
+  // Validate offers with schema
+  const validation = validateInput(offersComparisonSchema, offers);
+  if (!validation.success) {
+    return { success: false, errors: validation.errors };
+  }
+
+  const validatedOffers = validation.data;
 
   const prompt = buildSecurePrompt({
     context: "You are an expert career strategist and executive compensation negotiator.",
     task: `Analyze the provided job offers. Calculate the true total compensation (ignoring complex tax implications but factoring in base, bonus, and equity).
     Provide a highly strategic recommendation on which offer the candidate should accept, taking into account the financial differences, remote work flexibility, and potential career trajectory.`,
     untrustedData: [
-      { label: "offersData", value: JSON.stringify(offers), maxLength: 5000 },
+      { label: "offersData", value: JSON.stringify(validatedOffers), maxLength: 5000 },
     ],
     outputRules: `Provide the output in the following JSON format ONLY:
 {
@@ -35,14 +54,11 @@ export async function compareOffers(offers) {
     const aiResult = await generateGeminiContent(prompt);
     const parsedData = parseAIJson(aiResult.response.text());
 
-    // Basic calculation for UI
-    const processedOffers = offers.map(o => {
-      const base = parseFloat(o.baseSalary) || 0;
-      const bonus = parseFloat(o.bonus) || 0;
-      const equity = parseFloat(o.equity) || 0;
+    // Use validated data for calculation
+    const processedOffers = validatedOffers.map(o => {
       return {
         ...o,
-        totalCompensation: base + bonus + equity
+        totalCompensation: o.baseSalary + o.bonus + o.equity
       };
     });
 

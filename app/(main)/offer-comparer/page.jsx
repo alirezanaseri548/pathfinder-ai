@@ -137,6 +137,7 @@ export default function OfferComparerPage() {
                         </label>
                         <Input
                           type="number"
+                          min="0"
                           placeholder="150000"
                           className="h-10 rounded-lg bg-background"
                           value={offer.baseSalary}
@@ -149,6 +150,7 @@ export default function OfferComparerPage() {
                         </label>
                         <Input
                           type="number"
+                          min="0"
                           placeholder="20000"
                           className="h-10 rounded-lg bg-background"
                           value={offer.bonus}
@@ -161,6 +163,7 @@ export default function OfferComparerPage() {
                         </label>
                         <Input
                           type="number"
+                          min="0"
                           placeholder="50000"
                           className="h-10 rounded-lg bg-background"
                           value={offer.equity}
