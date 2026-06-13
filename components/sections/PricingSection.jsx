@@ -1,4 +1,54 @@
-    <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+"use client";
+
+import { motion } from "framer-motion";
+import { Check, ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { FadeUp, StaggerContainer, StaggerItem } from "@/components/motion";
+
+const plans = [
+  {
+    name: "Free",
+    price: "$0",
+    period: "/month",
+    desc: "For individuals just getting started.",
+    features: ["Basic features", "Up to 3 projects", "Community support"],
+    cta: "Get Started",
+    href: "/sign-up",
+    popular: false,
+  },
+  {
+    name: "Pro",
+    price: "$29",
+    period: "/month",
+    desc: "For professionals.",
+    features: ["Everything in Free", "Unlimited projects", "Priority support"],
+    cta: "Upgrade to Pro",
+    href: "/sign-up",
+    popular: true,
+  },
+  {
+    name: "Enterprise",
+    price: "Custom",
+    desc: "For large teams.",
+    features: ["Everything in Pro", "Custom integrations", "Dedicated account manager"],
+    cta: "Contact Sales",
+    href: "/contact",
+    popular: false,
+  }
+];
+
+export function PricingSection() {
+  return (
+    <section id="pricing" className="py-20">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-16">
+          <FadeUp>
+            <h2 className="text-4xl font-bold mb-4">Simple, transparent pricing</h2>
+            <p className="text-xl text-muted-foreground">No surprise fees.</p>
+          </FadeUp>
+        </div>
+        <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
       {plans.map((plan) => (
         <StaggerItem key={plan.name}>
           <motion.div
@@ -53,5 +103,7 @@
         </StaggerItem>
       ))}
     </StaggerContainer>
-  </div>
-</section>
+      </div>
+    </section>
+  );
+}

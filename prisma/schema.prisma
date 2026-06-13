@@ -52,7 +52,6 @@ model User {
   industryInsight IndustryInsight? @relation(fields: [industry], references: [industry])
   atsAnalyses     AtsAnalysis[]
   settings        UserSettings?
-  atsAnalyses          ATSAnalysis[]
   roadmaps             Roadmap[]
   jobApplications      JobApplication[]
   linkedinOptimizations LinkedInOptimization[]
@@ -88,7 +87,7 @@ model User {
   performanceReviews   PerformanceReview[]
   imposterSyndromes    ImposterSyndrome[]
   managerReadmes       ManagerReadme[]
-  settings             UserSettings?
+  skillGapAnalyses     SkillGapAnalysis[]
 
   exportRecords ExportRecord[]
   auditLogs     AuditLog[]
@@ -309,7 +308,7 @@ model JobApplication {
   location       String?
   notes          String?      @db.Text
   atsAnalysisId  String?
-  atsAnalysis    ATSAnalysis? @relation(fields: [atsAnalysisId], references: [id], onDelete: SetNull)
+  atsAnalysis    AtsAnalysis? @relation(fields: [atsAnalysisId], references: [id], onDelete: SetNull)
   coverLetterId  String?
   coverLetter    CoverLetter? @relation(fields: [coverLetterId], references: [id], onDelete: SetNull)
   interviewDate  DateTime?
@@ -716,4 +715,17 @@ model ManagerReadme {
   createdAt      DateTime @default(now())
 
   @@index([userId])
+}
+
+model SkillGapAnalysis {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentSkills    String   @db.Text
+  targetRole       String
+  jobDescription   String?  @db.Text
+  learningDuration String?
+  analysis         Json
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
