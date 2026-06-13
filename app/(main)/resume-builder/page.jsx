@@ -18,12 +18,19 @@ export default function ResumeBuilderPage() {
 
   useEffect(() => {
     async function loadHistory() {
-      const res = await getResumeHistory();
-      if (res.success && res.data.length > 0) {
-        setHistory(res.data);
-        setActiveResume(res.data[0].content);
+      try {
+        const res = await getResumeHistory();
+
+        if (res.success && res.data.length > 0) {
+          setHistory(res.data);
+          setActiveResume(res.data[0].content);
+        }
+      } catch (error) {
+        console.error("Failed to load resume history:", error);
+        toast.error("Failed to load resume history");
       }
     }
+
     loadHistory();
   }, []);
 
